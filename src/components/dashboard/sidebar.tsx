@@ -7,6 +7,7 @@ import { ChevronDown, ChevronLeft, ChevronsUpDown, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SynkLogo } from "@/components/synk-logo"
 import { NAVIGATION, type NavItem } from "@/components/dashboard/navigation"
+import { logoutAction } from "@/app/actions/auth"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SidebarProps {
@@ -162,7 +163,7 @@ function SidebarFooter({ collapsed, onToggleCollapse }: { collapsed: boolean; on
               <p className="truncate text-[13px] font-semibold text-white">Maria Silva</p>
               <p className="truncate text-[11px] text-[#94A3B8]">Administradora</p>
             </div>
-            <button type="button" className="rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-white/5 hover:text-white" aria-label="Sair">
+            <button type="button" onClick={() => logoutAction()} className="rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-white/5 hover:text-white" aria-label="Sair">
               <LogOut className="size-4" strokeWidth={1.5} />
             </button>
           </>

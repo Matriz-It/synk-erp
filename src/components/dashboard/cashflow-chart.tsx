@@ -1,6 +1,6 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 
 const data = [
@@ -45,28 +45,26 @@ export function CashflowChart() {
 
       <div className="min-h-0 flex-1">
         <ChartContainer config={chartConfig} className="h-[260px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} barCategoryGap="22%">
-              <CartesianGrid vertical={false} stroke="#E2E8F0" strokeDasharray="3 3" />
-              <XAxis dataKey="week" tickLine={false} axisLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} tickFormatter={(v) => formatBRL(v)} width={56} />
-              <ChartTooltip
-                cursor={{ fill: "rgba(61,62,191,0.05)" }}
-                content={
-                  <ChartTooltipContent
-                    formatter={(value, name) => (
-                      <span className="flex w-full items-center justify-between gap-3">
-                        <span className="text-[#64748B]">{chartConfig[name as keyof typeof chartConfig]?.label}</span>
-                        <span className="font-mono font-semibold text-synk-navy">{formatBRL(value as number)}</span>
-                      </span>
-                    )}
-                  />
-                }
-              />
-              <Bar dataKey="entradas" fill="var(--synk-indigo)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="saidas" fill="var(--synk-indigo-hover)" radius={[4, 4, 0, 0]} opacity={0.55} />
-            </BarChart>
-          </ResponsiveContainer>
+          <BarChart data={data} barCategoryGap="22%">
+            <CartesianGrid vertical={false} stroke="#E2E8F0" strokeDasharray="3 3" />
+            <XAxis dataKey="week" tickLine={false} axisLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} />
+            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} tickFormatter={(v) => formatBRL(v)} width={56} />
+            <ChartTooltip
+              cursor={{ fill: "rgba(61,62,191,0.05)" }}
+              content={
+                <ChartTooltipContent
+                  formatter={(value, name) => (
+                    <span className="flex w-full items-center justify-between gap-3">
+                      <span className="text-[#64748B]">{chartConfig[name as keyof typeof chartConfig]?.label}</span>
+                      <span className="font-mono font-semibold text-synk-navy">{formatBRL(value as number)}</span>
+                    </span>
+                  )}
+                />
+              }
+            />
+            <Bar dataKey="entradas" fill="var(--synk-indigo)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="saidas" fill="var(--synk-indigo-hover)" radius={[4, 4, 0, 0]} opacity={0.55} />
+          </BarChart>
         </ChartContainer>
       </div>
     </section>

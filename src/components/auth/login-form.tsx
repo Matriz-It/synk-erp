@@ -1,25 +1,49 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { AlertCircle, Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react"
+import { AlertCircle, Eye, EyeOff, Lock, Loader2, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GoogleIcon } from "@/components/auth/google-icon"
+import { loginAction } from "@/app/actions/auth"
 
 interface FieldErrors {
-  email?: string
+  identifier?: string
   password?: string
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function formatIdentifier(raw: string): string {
+  if (/[a-zA-Z@]/.test(raw)) return raw
+
+  const digits = raw.replace(/\D/g, "")
+  if (!digits) return raw
+
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})/, "$1.$2.$3-$4")
+  }
+
+  return digits
+    .slice(0, 14)
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2")
+}
+
 function validate(field: keyof FieldErrors, value: string): string | undefined {
-  if (field === "email") {
-    if (!value) return "Informe seu e-mail"
-    if (!emailRegex.test(value)) return "Formato de e-mail inválido"
+  if (field === "identifier") {
+    if (!value) return "Informe seu e-mail, CPF ou CNPJ"
+    if (emailRegex.test(value)) return undefined
+    const digits = value.replace(/\D/g, "")
+    if (digits.length === 11 || digits.length === 14) return undefined
+    return "Informe um e-mail, CPF ou CNPJ válido"
   }
   if (field === "password") {
     if (!value) return "Informe sua senha"
@@ -29,9 +53,7 @@ function validate(field: keyof FieldErrors, value: string): string | undefined {
 }
 
 export function LoginForm() {
-  const router = useRouter()
-
-  const [email, setEmail] = useState("")
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -44,69 +66,74 @@ export function LoginForm() {
     setErrors((e) => ({ ...e, [field]: validate(field, value) }))
   }
 
-  function handleChange(field: keyof FieldErrors, value: string) {
-    if (field === "email") setEmail(value)
-    else setPassword(value)
+  function handleIdentifierChange(raw: string) {
+    const formatted = formatIdentifier(raw)
+    setIdentifier(formatted)
     setCredentialError(null)
-    if (touched[field]) {
-      setErrors((e) => ({ ...e, [field]: validate(field, value) }))
+    if (touched.identifier) {
+      setErrors((e) => ({ ...e, identifier: validate("identifier", formatted) }))
+    }
+  }
+
+  function handlePasswordChange(value: string) {
+    setPassword(value)
+    setCredentialError(null)
+    if (touched.password) {
+      setErrors((e) => ({ ...e, password: validate("password", value) }))
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextErrors: FieldErrors = {
-      email: validate("email", email),
+      identifier: validate("identifier", identifier),
       password: validate("password", password),
     }
-    setTouched({ email: true, password: true })
+    setTouched({ identifier: true, password: true })
     setErrors(nextErrors)
-    if (nextErrors.email || nextErrors.password) return
+    if (nextErrors.identifier || nextErrors.password) return
 
     setIsSubmitting(true)
     setCredentialError(null)
 
-    await new Promise((resolve) => setTimeout(resolve, 1100))
+    const result = await loginAction(identifier, password)
 
-    if (email === "errado@synk.com" || password === "wrongpass") {
-      setCredentialError("E-mail ou senha incorretos")
+    if (result?.error) {
+      setCredentialError(result.error)
       setIsSubmitting(false)
-      return
     }
-
-    router.push("/dashboard")
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       <div className="space-y-1.5">
-        <Label htmlFor="email" className="text-[13px] font-medium text-synk-navy">
-          E-mail
+        <Label htmlFor="identifier" className="text-[13px] font-medium text-synk-navy">
+          E-mail, CPF ou CNPJ
         </Label>
         <div className="relative">
-          <Mail
+          <User
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#94A3B8]"
             strokeWidth={1.5}
           />
           <Input
-            id="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            placeholder="seu@email.com.br"
-            value={email}
-            onChange={(e) => handleChange("email", e.target.value)}
-            onBlur={(e) => handleBlur("email", e.target.value)}
+            id="identifier"
+            type="text"
+            inputMode="text"
+            autoComplete="username"
+            placeholder="email@empresa.com, CPF ou CNPJ"
+            value={identifier}
+            onChange={(e) => handleIdentifierChange(e.target.value)}
+            onBlur={(e) => handleBlur("identifier", e.target.value)}
             disabled={isSubmitting}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            className={`h-11 pl-10 ${errors.email ? "border-synk-danger focus-visible:ring-synk-danger/40" : ""}`}
+            aria-invalid={!!errors.identifier}
+            aria-describedby={errors.identifier ? "identifier-error" : undefined}
+            className={`h-11 pl-10 ${errors.identifier ? "border-synk-danger focus-visible:ring-synk-danger/40" : ""}`}
           />
         </div>
-        {errors.email && (
-          <p id="email-error" className="flex items-center gap-1.5 text-xs text-synk-danger">
+        {errors.identifier && (
+          <p id="identifier-error" className="flex items-center gap-1.5 text-xs text-synk-danger">
             <AlertCircle className="size-3.5" strokeWidth={1.5} />
-            {errors.email}
+            {errors.identifier}
           </p>
         )}
       </div>
@@ -134,7 +161,7 @@ export function LoginForm() {
             autoComplete="current-password"
             placeholder="••••••••"
             value={password}
-            onChange={(e) => handleChange("password", e.target.value)}
+            onChange={(e) => handlePasswordChange(e.target.value)}
             onBlur={(e) => handleBlur("password", e.target.value)}
             disabled={isSubmitting}
             aria-invalid={!!errors.password || !!credentialError}
