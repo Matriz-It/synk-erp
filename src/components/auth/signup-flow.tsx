@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { registerAction } from "@/app/actions/auth"
 import {
   AlertCircle, ArrowLeft, Check, Eye, EyeOff, Loader2,
-  Lock, Mail, User, Building2, Sparkles,
+  Lock, Mail, User, Building2, Sparkles, IdCard,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,7 @@ type Step = 1 | 2
 
 interface SignupData {
   fullName: string
+  cpf: string
   email: string
   password: string
   confirmPassword: string
@@ -46,6 +47,19 @@ function passwordStrength(password: string): { score: 0 | 1 | 2 | 3; label: stri
   return { score: 3, label: "Forte", color: "#14B87E" }
 }
 
+function maskCPF(value: string) {
+  return value
+    .replace(/\D/g, "").slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})/, "$1.$2.$3-$4")
+}
+
+function isValidCPF(cpf: string) {
+  const d = cpf.replace(/\D/g, "")
+  return d.length === 11 && !/^(\d)\1{10}$/.test(d)
+}
+
 function maskCNPJ(value: string) {
   return value
     .replace(/\D/g, "").slice(0, 14)
@@ -65,6 +79,10 @@ function validate(field: FieldKey, value: string | boolean, data: SignupData): s
     case "fullName":
       if (!value) return "Informe seu nome completo"
       if ((value as string).trim().split(" ").length < 2) return "Informe nome e sobrenome"
+      return
+    case "cpf":
+      if (!value) return undefined
+      if (!isValidCPF(value as string)) return "CPF inválido"
       return
     case "email":
       if (!value) return "Informe seu e-mail"
@@ -99,17 +117,17 @@ function validate(field: FieldKey, value: string | boolean, data: SignupData): s
 }
 
 export function SignupFlow() {
-  const router = useRouter()
   const [step, setStep] = useState<Step>(1)
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [data, setData] = useState<SignupData>({
-    fullName: "", email: "", password: "", confirmPassword: "",
+    fullName: "", cpf: "", email: "", password: "", confirmPassword: "",
     companyName: "", segment: "", size: "", cnpj: "", acceptedTerms: false,
   })
   const [errors, setErrors] = useState<Errors>({})
   const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   function update<K extends FieldKey>(key: K, value: SignupData[K]) {
     setData((d) => ({ ...d, [key]: value }))
@@ -141,8 +159,21 @@ export function SignupFlow() {
     if (!Object.values(next).every((v) => !v)) return
 
     setIsSubmitting(true)
-    await new Promise((r) => setTimeout(r, 1200))
-    router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+    setSubmitError(null)
+
+    const result = await registerAction({
+      tenantName: data.companyName,
+      tenantDocument: data.cnpj || undefined,
+      adminName: data.fullName,
+      adminEmail: data.email,
+      adminPassword: data.password,
+      adminDocument: data.cpf || undefined,
+    })
+
+    if (result?.error) {
+      setSubmitError(result.error)
+      setIsSubmitting(false)
+    }
   }
 
   const strength = passwordStrength(data.password)
@@ -173,6 +204,31 @@ export function SignupFlow() {
             <FieldRow id="fullName" label="Nome completo" icon={User} placeholder="Maria da Silva"
               value={data.fullName} error={errors.fullName}
               onChange={(v) => update("fullName", v)} onBlur={() => blur("fullName")} autoComplete="name" />
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cpf" className="flex items-center justify-between text-[13px] font-medium text-synk-navy">
+                CPF
+                <span className="text-xs font-normal text-[#94A3B8]">Opcional</span>
+              </Label>
+              <div className="relative">
+                <IdCard className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.5} />
+                <Input
+                  id="cpf" inputMode="numeric" autoComplete="off"
+                  placeholder="000.000.000-00"
+                  value={data.cpf}
+                  onChange={(e) => update("cpf", maskCPF(e.target.value))}
+                  onBlur={() => blur("cpf")}
+                  aria-invalid={!!errors.cpf}
+                  className={`h-11 pl-10 font-mono ${errors.cpf ? "border-synk-danger focus-visible:ring-synk-danger/40" : ""}`}
+                />
+              </div>
+              {errors.cpf && (
+                <p className="flex items-center gap-1.5 text-xs text-synk-danger">
+                  <AlertCircle className="size-3.5" strokeWidth={1.5} />{errors.cpf}
+                </p>
+              )}
+            </div>
+
             <FieldRow id="email" type="email" label="E-mail corporativo" icon={Mail}
               placeholder="maria@empresa.com.br" value={data.email} error={errors.email}
               onChange={(v) => update("email", v)} onBlur={() => blur("email")} autoComplete="email" />
@@ -321,6 +377,13 @@ export function SignupFlow() {
               <p className="flex items-center gap-1.5 text-xs text-synk-danger">
                 <AlertCircle className="size-3.5" strokeWidth={1.5} />{errors.acceptedTerms}
               </p>
+            )}
+
+            {submitError && (
+              <div role="alert" className="flex items-start gap-2.5 rounded-md border border-synk-danger/20 bg-synk-danger-bg/50 px-3.5 py-3">
+                <AlertCircle className="mt-0.5 size-4 shrink-0 text-synk-danger" strokeWidth={1.5} />
+                <p className="text-sm text-synk-danger">{submitError}</p>
+              </div>
             )}
 
             <div className="flex flex-col gap-2 pt-1">

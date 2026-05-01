@@ -8,6 +8,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { NAVIGATION } from "@/components/dashboard/navigation"
+import { logoutAction } from "@/app/actions/auth"
 import { cn } from "@/lib/utils"
 
 interface TopbarProps {
@@ -82,7 +83,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           <DropdownMenuItem>Minha empresa</DropdownMenuItem>
           <DropdownMenuItem>Plano atual</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-synk-danger focus:text-synk-danger">Sair</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => logoutAction()} className="cursor-pointer text-synk-danger focus:text-synk-danger">Sair</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
