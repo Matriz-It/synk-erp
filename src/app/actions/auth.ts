@@ -1,8 +1,22 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { apiPost, ApiError } from '@/lib/api'
+import { apiGet, apiPost, ApiError } from '@/lib/api'
 import { createSession, deleteSession } from '@/lib/session'
+
+export interface MeData {
+  user: { name: string; email: string; role: string }
+  tenant: { name: string; document: string | null; plan: string }
+}
+
+export async function getMeAction(): Promise<MeData | null> {
+  try {
+    return await apiGet<MeData>('/auth/me')
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) redirect('/login')
+    return null
+  }
+}
 
 interface AuthTokens {
   accessToken: string
@@ -48,5 +62,5 @@ export async function registerAction(payload: {
 
 export async function logoutAction() {
   await deleteSession()
-  redirect('/login')
+  // redirect é feito no cliente após o await (redirect() não funciona em onClick handlers)
 }
