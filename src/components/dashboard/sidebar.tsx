@@ -7,15 +7,29 @@ import { ChevronDown, ChevronLeft, ChevronsUpDown, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SynkLogo } from "@/components/synk-logo"
 import { NAVIGATION, type NavItem } from "@/components/dashboard/navigation"
-import { logoutAction } from "@/app/actions/auth"
+import { logoutAction, type MeData } from "@/app/actions/auth"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SidebarProps {
   collapsed: boolean
   onToggleCollapse: () => void
+  me: MeData | null
 }
 
-export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+function initials(name: string) {
+  return name.split(' ').slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase() || '??'
+}
+
+function formatCNPJ(raw: string | null): string {
+  if (!raw) return ''
+  const d = raw.replace(/\D/g, '').padStart(14, '0')
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12, 14)}`
+}
+
+const ROLE_LABEL: Record<string, string> = { admin: 'Administrador', user: 'Usuário' }
+const PLAN_LABEL: Record<string, string> = { free: 'Plano Free', pro: 'Plano Pro', enterprise: 'Enterprise' }
+
+export function Sidebar({ collapsed, onToggleCollapse, me }: SidebarProps) {
   return (
     <aside
       className={cn(
@@ -24,35 +38,44 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       )}
       aria-label="Navegação principal"
     >
-      <SidebarHeader collapsed={collapsed} />
+      <SidebarHeader collapsed={collapsed} me={me} />
       <nav className="flex-1 px-2 py-3">
         <ul className="flex flex-col gap-0.5">
           {NAVIGATION.map((item) => <SidebarItem key={item.href} item={item} collapsed={collapsed} />)}
         </ul>
       </nav>
-      <SidebarFooter collapsed={collapsed} onToggleCollapse={onToggleCollapse} />
+      <SidebarFooter collapsed={collapsed} onToggleCollapse={onToggleCollapse} me={me} />
     </aside>
   )
 }
 
-function SidebarHeader({ collapsed }: { collapsed: boolean }) {
+function SidebarHeader({ collapsed, me }: { collapsed: boolean; me: MeData | null }) {
   return (
     <div className="flex flex-col gap-3 border-b border-[#1E293B] p-3">
       <div className="flex h-10 items-center px-2">
         {collapsed ? <SynkLogo variant="dark" showWordmark={false} /> : <SynkLogo variant="dark" />}
       </div>
-      {!collapsed && <CompanySwitcher />}
+      {!collapsed && <CompanySwitcher me={me} />}
     </div>
   )
 }
 
-function CompanySwitcher() {
+function CompanySwitcher({ me }: { me: MeData | null }) {
+  const tenantName = me?.tenant.name || 'Minha Empresa'
+  const cnpj = formatCNPJ(me?.tenant.document ?? null)
+  const plan = PLAN_LABEL[me?.tenant.plan ?? ''] ?? ''
+  const avatarLetters = initials(tenantName)
+
   return (
     <button type="button" className="group flex w-full items-center gap-2.5 rounded-md border border-[#1E293B] bg-[#1E293B]/50 p-2 text-left transition-colors hover:border-synk-indigo/40 hover:bg-[#1E293B]">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-synk-indigo text-[13px] font-bold text-white">AC</span>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-synk-indigo text-[13px] font-bold text-white">
+        {avatarLetters}
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-semibold text-white">Acme Comércio</span>
-        <span className="block truncate text-[11px] text-[#94A3B8]">CNPJ 12.345.678/0001</span>
+        <span className="block truncate text-[13px] font-semibold text-white">{tenantName}</span>
+        <span className="block truncate text-[11px] text-[#94A3B8]">
+          {cnpj ? `CNPJ ${cnpj}` : plan}
+        </span>
       </span>
       <ChevronsUpDown className="size-4 shrink-0 text-[#64748B] group-hover:text-[#94A3B8]" strokeWidth={1.5} />
     </button>
@@ -152,18 +175,27 @@ function SidebarItem({ item, collapsed }: { item: NavItem; collapsed: boolean })
   )
 }
 
-function SidebarFooter({ collapsed, onToggleCollapse }: { collapsed: boolean; onToggleCollapse: () => void }) {
+function SidebarFooter({ collapsed, onToggleCollapse, me }: { collapsed: boolean; onToggleCollapse: () => void; me: MeData | null }) {
+  const userName = me?.user.name || me?.user.email || '—'
+  const roleLabel = ROLE_LABEL[me?.user.role ?? ''] ?? me?.user.role ?? ''
+  const userInitials = initials(userName)
+
   return (
     <div className="border-t border-[#1E293B] p-3">
       <div className={cn("flex items-center gap-3 rounded-md p-2", collapsed && "justify-center")}>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#334155] text-[12px] font-semibold text-white">MS</span>
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#334155] text-[12px] font-semibold text-white">{userInitials}</span>
         {!collapsed && (
           <>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold text-white">Maria Silva</p>
-              <p className="truncate text-[11px] text-[#94A3B8]">Administradora</p>
+              <p className="truncate text-[13px] font-semibold text-white">{userName}</p>
+              <p className="truncate text-[11px] text-[#94A3B8]">{roleLabel}</p>
             </div>
-            <button type="button" onClick={() => logoutAction()} className="rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-white/5 hover:text-white" aria-label="Sair">
+            <button
+              type="button"
+              onClick={async () => { await logoutAction(); window.location.replace('/login') }}
+              className="rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-white/5 hover:text-white"
+              aria-label="Sair"
+            >
               <LogOut className="size-4" strokeWidth={1.5} />
             </button>
           </>
