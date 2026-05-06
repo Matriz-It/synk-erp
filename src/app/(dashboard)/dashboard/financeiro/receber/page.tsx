@@ -1,6 +1,5 @@
-import { Wallet } from "lucide-react"
-import { ComingSoon } from "@/components/dashboard/coming-soon"
+import { FinanceiroView } from "@/components/financeiro/financeiro-view"
 
 export default function ContasReceberPage() {
-  return <ComingSoon label="Contas a Receber" icon={Wallet} />
+  return <FinanceiroView tipo="receber" />
 }
