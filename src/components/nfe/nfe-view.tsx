@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
-import { CLIENTES_MOCK } from '@/components/clients/types'
-import { PRODUTOS_MOCK } from '@/components/products/types'
+import { useState, useMemo, useEffect } from 'react'
+import type { Cliente } from '@/components/clients/types'
+import type { Produto } from '@/components/products/types'
+import { listNfesAction, createNfeAction, type Nfe, type NFeStatus } from '@/app/actions/nfes'
+import { listClientesAction } from '@/app/actions/clients'
+import { listProductsAction } from '@/app/actions/products'
 
 // ─── Design tokens ────────────────────────────────────────────────
 const T = {
@@ -45,19 +48,9 @@ interface Vencimento {
   obs: string
 }
 
-// ─── Mock data ────────────────────────────────────────────────────
-const NFE_MOCK = [
-  { id:'NFE-2026-00142', numero:'000142', serie:'1', cliente:'Lima Distribuidora Ltda', cnpj:'12.345.678/0001-90', dataEmissao:'2026-04-28', total:12450.80, status:'autorizada' as const, finalidade:'NORMAL' },
-  { id:'NFE-2026-00141', numero:'000141', serie:'1', cliente:'Construtora Velez S.A.',  cnpj:'55.443.321/0001-77', dataEmissao:'2026-04-27', total:38970.00, status:'autorizada' as const, finalidade:'NORMAL' },
-  { id:'NFE-2026-00140', numero:'000140', serie:'1', cliente:'Padaria São Jorge Eireli',cnpj:'98.765.432/0001-10', dataEmissao:'2026-04-26', total: 1820.50, status:'autorizada' as const, finalidade:'COMPLEMENTAR' },
-  { id:'NFE-2026-00139', numero:'000139', serie:'1', cliente:'Mercado Boa Vista ME',    cnpj:'33.221.100/0001-55', dataEmissao:'2026-04-25', total: 4630.10, status:'rascunho'   as const, finalidade:'NORMAL' },
-  { id:'NFE-2026-00138', numero:'000138', serie:'1', cliente:'Café Central Comércio Ltda',cnpj:'77.654.321/0001-33', dataEmissao:'2026-04-24', total: 2410.00, status:'rejeitada' as const, finalidade:'NORMAL' },
-  { id:'NFE-2026-00137', numero:'000137', serie:'1', cliente:'Lima Distribuidora Ltda', cnpj:'12.345.678/0001-90', dataEmissao:'2026-04-22', total:  892.30, status:'cancelada'  as const, finalidade:'DEVOLUÇÃO' },
-]
+type NFeStatusFilter = 'autorizada' | 'rascunho' | 'rejeitada' | 'cancelada'
 
-type NFeStatus = 'autorizada' | 'rascunho' | 'rejeitada' | 'cancelada'
-
-const NFE_STATUS: Record<NFeStatus, { label: string; bg: string; color: string; dot: string }> = {
+const NFE_STATUS: Record<NFeStatusFilter, { label: string; bg: string; color: string; dot: string }> = {
   autorizada: { label:'Autorizada', bg:T.successBg, color:T.success, dot:T.success },
   rascunho:   { label:'Rascunho',   bg:'#F1F5F9',   color:T.gray500, dot:T.gray400 },
   rejeitada:  { label:'Rejeitada',  bg:T.dangerBg,  color:T.danger,  dot:T.danger  },
@@ -89,6 +82,7 @@ const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style:'currency', cu
 const num = (v: string | number) => { const n = parseFloat(String(v).replace(',','.')); return isNaN(n) ? 0 : n }
 const today = () => new Date().toISOString().slice(0,10)
 const in30d = () => new Date(Date.now() + 30 * 864e5).toISOString().slice(0,10)
+const padNum = (n: number) => String(n).padStart(6, '0')
 
 // ─── UI helpers ───────────────────────────────────────────────────
 function SectionTitle({ children, hint }: { children: React.ReactNode; hint?: string }) {
@@ -184,26 +178,32 @@ function SelectNFE({
 
 // ─── LIST PAGE ────────────────────────────────────────────────────
 function NFeListPage({ onNova }: { onNova: () => void }) {
-  const [search, setSearch]         = useState('')
-  const [statusFilt, setStatusFilt] = useState<'all' | NFeStatus>('all')
+  const [nfes, setNfes]               = useState<Nfe[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [search, setSearch]           = useState('')
+  const [statusFilt, setStatusFilt]   = useState<'all' | NFeStatus>('all')
 
-  const filtradas = NFE_MOCK.filter(n => {
+  useEffect(() => {
+    listNfesAction().then(setNfes).finally(() => setLoading(false))
+  }, [])
+
+  const filtradas = nfes.filter(n => {
     const q = search.toLowerCase()
-    const ms  = !q || n.cliente.toLowerCase().includes(q) || n.numero.includes(q) || n.cnpj.includes(q)
+    const ms  = !q || n.cliente.toLowerCase().includes(q) || String(n.numero).includes(q) || n.clienteCnpj.includes(q)
     const mst = statusFilt === 'all' || n.status === statusFilt
     return ms && mst
   })
 
-  const totalEmitido = NFE_MOCK.filter(n => n.status === 'autorizada').reduce((a,n) => a + n.total, 0)
-  const totalAutoriz = NFE_MOCK.filter(n => n.status === 'autorizada').length
-  const totalRascunh = NFE_MOCK.filter(n => n.status === 'rascunho').length
+  const totalEmitido = nfes.filter(n => n.status === 'autorizada').reduce((a,n) => a + n.valorTotal, 0)
+  const totalAutoriz = nfes.filter(n => n.status === 'autorizada').length
+  const totalRascunh = nfes.filter(n => n.status === 'rascunho').length
 
   return (
     <div style={{ maxWidth:1280, margin:'0 auto', display:'flex', flexDirection:'column', gap:20 }}>
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={{ fontFamily:'DM Sans, sans-serif', fontSize:24, fontWeight:700, letterSpacing:'-0.4px', color:T.navy }}>Notas Fiscais Eletrônicas</h1>
-          <p style={{ fontSize:14, color:T.gray500, marginTop:2 }}>{NFE_MOCK.length} NF-e · {totalAutoriz} autorizadas · {totalRascunh} rascunhos</p>
+          <p style={{ fontSize:14, color:T.gray500, marginTop:2 }}>{nfes.length} NF-e · {totalAutoriz} autorizadas · {totalRascunh} rascunhos</p>
         </div>
         <button
           onClick={onNova}
@@ -218,10 +218,10 @@ function NFeListPage({ onNova }: { onNova: () => void }) {
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
         {[
-          { label:'Total emitidas', value: NFE_MOCK.length,      color:T.navy,    bg:'#fff'         },
-          { label:'Autorizadas',    value: totalAutoriz,          color:T.success, bg:T.successBg    },
-          { label:'Faturado (mês)', value: fmt(totalEmitido),     color:T.indigo,  bg:T.indigoLight  },
-          { label:'Rascunhos',      value: totalRascunh,          color:T.gray500, bg:T.gray50       },
+          { label:'Total emitidas', value: nfes.length,      color:T.navy,    bg:'#fff'         },
+          { label:'Autorizadas',    value: totalAutoriz,      color:T.success, bg:T.successBg    },
+          { label:'Faturado (mês)', value: fmt(totalEmitido), color:T.indigo,  bg:T.indigoLight  },
+          { label:'Rascunhos',      value: totalRascunh,      color:T.gray500, bg:T.gray50       },
         ].map(k => (
           <div key={k.label} style={{ padding:'14px 16px', borderRadius:10, border:`1px solid ${T.gray200}`, background:k.bg, boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
             <p style={{ fontSize:11, fontWeight:500, textTransform:'uppercase', letterSpacing:'0.05em', color:T.gray400, marginBottom:4 }}>{k.label}</p>
@@ -254,7 +254,11 @@ function NFeListPage({ onNova }: { onNova: () => void }) {
       </div>
 
       <div style={{ borderRadius:10, border:`1px solid ${T.gray200}`, background:'#fff', boxShadow:'0 1px 3px rgba(0,0,0,0.04)', overflow:'hidden' }}>
-        {filtradas.length === 0 ? (
+        {loading ? (
+          <div style={{ padding:'64px', textAlign:'center' }}>
+            <p style={{ fontSize:14, color:T.gray400 }}>Carregando...</p>
+          </div>
+        ) : filtradas.length === 0 ? (
           <div style={{ padding:'64px', textAlign:'center' }}>
             <svg width={40} height={40} viewBox="0 0 24 24" fill="none" stroke={T.gray400} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             <p style={{ fontSize:15, fontWeight:600, color:T.navy, marginTop:12 }}>Nenhuma NF-e encontrada</p>
@@ -272,7 +276,7 @@ function NFeListPage({ onNova }: { onNova: () => void }) {
               </thead>
               <tbody>
                 {filtradas.map(n => {
-                  const st = NFE_STATUS[n.status]
+                  const st = NFE_STATUS[n.status as NFeStatusFilter]
                   return (
                     <tr key={n.id}
                       style={{ borderTop:`1px solid ${T.gray100}`, cursor:'pointer' }}
@@ -280,20 +284,20 @@ function NFeListPage({ onNova }: { onNova: () => void }) {
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       <td style={{ padding:'12px 18px' }}>
-                        <p style={{ fontFamily:'JetBrains Mono, monospace', fontWeight:700, color:T.indigo }}>{n.numero}</p>
+                        <p style={{ fontFamily:'JetBrains Mono, monospace', fontWeight:700, color:T.indigo }}>{padNum(n.numero)}</p>
                         <p style={{ fontSize:11, color:T.gray400 }}>Série {n.serie}</p>
                       </td>
                       <td style={{ padding:'12px 18px', fontWeight:500, color:T.navy }}>{n.cliente}</td>
-                      <td style={{ padding:'12px 18px', fontFamily:'JetBrains Mono, monospace', fontSize:12, color:T.gray500 }}>{n.cnpj}</td>
+                      <td style={{ padding:'12px 18px', fontFamily:'JetBrains Mono, monospace', fontSize:12, color:T.gray500 }}>{n.clienteCnpj}</td>
                       <td style={{ padding:'12px 18px', fontFamily:'JetBrains Mono, monospace', fontSize:12, color:T.gray500 }}>{n.dataEmissao}</td>
                       <td style={{ padding:'12px 18px' }}>
                         <span style={{ display:'inline-block', padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:600, background:T.indigoLight, color:T.indigo, letterSpacing:'0.03em' }}>{n.finalidade}</span>
                       </td>
-                      <td style={{ padding:'12px 18px', textAlign:'right', fontFamily:'JetBrains Mono, monospace', fontWeight:700, color:T.navy }}>{fmt(n.total)}</td>
+                      <td style={{ padding:'12px 18px', textAlign:'right', fontFamily:'JetBrains Mono, monospace', fontWeight:700, color:T.navy }}>{fmt(n.valorTotal)}</td>
                       <td style={{ padding:'12px 18px', textAlign:'center' }}>
-                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, borderRadius:4, padding:'3px 8px', fontSize:11, fontWeight:600, background:st.bg, color:st.color }}>
-                          <span style={{ width:5, height:5, borderRadius:'50%', background:st.dot }} />
-                          {st.label}
+                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, borderRadius:4, padding:'3px 8px', fontSize:11, fontWeight:600, background:st?.bg, color:st?.color }}>
+                          <span style={{ width:5, height:5, borderRadius:'50%', background:st?.dot }} />
+                          {st?.label ?? n.status}
                         </span>
                       </td>
                       <td style={{ padding:'12px 18px', textAlign:'right' }}>
@@ -312,8 +316,8 @@ function NFeListPage({ onNova }: { onNova: () => void }) {
               </tbody>
             </table>
             <div style={{ padding:'12px 18px', borderTop:`1px solid ${T.gray100}`, display:'flex', justifyContent:'space-between', background:T.gray50 }}>
-              <span style={{ fontSize:12, color:T.gray400 }}>Mostrando {filtradas.length} de {NFE_MOCK.length} NF-e</span>
-              <span style={{ fontSize:12, color:T.gray400 }}>Total filtrado: <strong style={{ color:T.navy }}>{fmt(filtradas.reduce((a,n) => a + n.total, 0))}</strong></span>
+              <span style={{ fontSize:12, color:T.gray400 }}>Mostrando {filtradas.length} de {nfes.length} NF-e</span>
+              <span style={{ fontSize:12, color:T.gray400 }}>Total filtrado: <strong style={{ color:T.navy }}>{fmt(filtradas.reduce((a,n) => a + n.valorTotal, 0))}</strong></span>
             </div>
           </>
         )}
@@ -326,8 +330,15 @@ function NFeListPage({ onNova }: { onNova: () => void }) {
 function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
   const [aba, setAba] = useState('gerais')
 
+  const [clientes, setClientes] = useState<Cliente[]>([])
+  const [produtos, setProdutos] = useState<Produto[]>([])
+
+  useEffect(() => {
+    listClientesAction().then(setClientes)
+    listProductsAction().then(setProdutos)
+  }, [])
+
   const [gerais, setGerais] = useState({
-    numero:          '000143',
     serie:           '1',
     dataEmissao:     today(),
     dataSaida:       today(),
@@ -340,7 +351,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
     consumidorFinal: 'NÃO',
   })
 
-  const [clienteSel, setClienteSel]     = useState<typeof CLIENTES_MOCK[0] | null>(null)
+  const [clienteSel, setClienteSel]     = useState<Cliente | null>(null)
   const [buscaCliente, setBuscaCliente] = useState('')
   const [showSugCli, setShowSugCli]     = useState(false)
 
@@ -410,23 +421,23 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
   const diffVencs  = +(totalNF - totalVencs).toFixed(2)
 
   const clientesFiltrados = useMemo(() =>
-    CLIENTES_MOCK.filter(c => c.ativo && (
+    clientes.filter(c => c.ativo && (
       buscaCliente === '' ||
       c.razaoSocial.toLowerCase().includes(buscaCliente.toLowerCase()) ||
       c.documento.includes(buscaCliente)
     )).slice(0, 6),
-  [buscaCliente])
+  [buscaCliente, clientes])
 
   const prodsFiltrados = useMemo(() =>
-    PRODUTOS_MOCK.filter(p => p.ativo && p.qtd > 0 && (
+    produtos.filter(p => p.ativo && p.qtd > 0 && (
       buscaProd === '' ||
       p.nome.toLowerCase().includes(buscaProd.toLowerCase()) ||
       p.sku.toLowerCase().includes(buscaProd.toLowerCase())
     )).slice(0, 8),
-  [buscaProd])
+  [buscaProd, produtos])
 
   // ─── Items ────────────────────────────────────────────────────
-  function addItem(prod: typeof PRODUTOS_MOCK[0]) {
+  function addItem(prod: Produto) {
     setItens(its => [...its, {
       id: Date.now(),
       produtoId: prod.id, sku: prod.sku, nome: prod.nome,
@@ -485,11 +496,63 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
       const errs = validar()
       if (errs.length) { setErrosGlobais(errs); return }
     }
+    if (!clienteSel) { setErrosGlobais(['Cliente é obrigatório.']); return }
     setErrosGlobais([])
     setSalvando(true)
-    await new Promise(r => setTimeout(r, 900))
-    setSalvando(false)
-    onVoltar()
+    try {
+      await createNfeAction({
+        clientId: clienteSel.id,
+        dataEmissao: gerais.dataEmissao,
+        dataSaida: gerais.dataSaida || undefined,
+        naturezaOperacao: gerais.naturezaOp,
+        finalidade: gerais.finalidade,
+        serie: gerais.serie,
+        status: 'rascunho',
+        baseICMS: itens.reduce((a,i) => a + num(i.bcICMS), 0) || undefined,
+        valorICMS: totalICMS || undefined,
+        baseIBS: baseIBSn || undefined,
+        valorCBS: baseCBSn || undefined,
+        valorFrete: num(valFrete) || undefined,
+        valorSeguro: num(valSeguro) || undefined,
+        valorDesconto: (totalDescItens + num(valDesc)) || undefined,
+        valorOutro: num(valOutras) || undefined,
+        valorTotal: totalNF,
+        modalidadeFrete: dadosNota.tipoFrete as '0'|'1'|'2'|'3'|'4'|'9',
+        transportadora: dadosNota.transportadora || undefined,
+        placaVeiculo: dadosNota.placa || undefined,
+        pesoLiquido: num(dadosNota.pesoLiquido) || undefined,
+        pesoBruto: num(dadosNota.pesoBruto) || undefined,
+        qtdVolumes: num(dadosNota.quantidade) || undefined,
+        especieVolumes: dadosNota.especie || undefined,
+        obsContribuinte: obsContrib || undefined,
+        obsFisco: obsFisco || undefined,
+        numeroPedido: complementares.pedidoCompra || undefined,
+        numeroContrato: complementares.contrato || undefined,
+        items: itens.map(item => ({
+          produtoId: String(item.produtoId) || undefined,
+          sku: item.sku,
+          nome: item.nome,
+          qtd: num(item.qtd),
+          preco: num(item.preco),
+          desconto: num(item.desconto) || undefined,
+          cfop: item.cfop,
+          cst: item.cst,
+          bcICMS: num(item.bcICMS) || undefined,
+          aliqICMS: num(item.aliqICMS) || undefined,
+          valorICMS: (num(item.bcICMS) * num(item.aliqICMS) / 100) || undefined,
+        })),
+        vencimentos: vencs.filter(v => num(v.valor) > 0).map(v => ({
+          data: v.data,
+          valor: num(v.valor),
+          obs: v.obs || undefined,
+        })),
+      })
+      onVoltar()
+    } catch (err) {
+      setErrosGlobais([err instanceof Error ? err.message : 'Erro ao salvar a NF-e.'])
+    } finally {
+      setSalvando(false)
+    }
   }
 
   const errosCount = errosGlobais.length
@@ -510,7 +573,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
           </button>
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <h1 style={{ fontFamily:'DM Sans, sans-serif', fontSize:22, fontWeight:700, color:T.navy }}>Nova NF-e #{gerais.numero}</h1>
+              <h1 style={{ fontFamily:'DM Sans, sans-serif', fontSize:22, fontWeight:700, color:T.navy }}>Nova NF-e</h1>
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, borderRadius:4, padding:'3px 10px', fontSize:11, fontWeight:600, background:T.gray100, color:T.gray500 }}>
                 <span style={{ width:5, height:5, borderRadius:'50%', background:T.gray400 }} />Em edição
               </span>
@@ -532,7 +595,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
             onMouseEnter={e => { if (!salvando) e.currentTarget.style.background = T.indigoHover }}
             onMouseLeave={e => { if (!salvando) e.currentTarget.style.background = T.indigo }}
           >
-            {salvando ? 'Emitindo...' : 'Emitir NF-e'}
+            {salvando ? 'Salvando...' : 'Emitir NF-e'}
           </button>
         </div>
       </div>
@@ -583,7 +646,6 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
               <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
                 <SectionTitle hint="Identificação fiscal e finalidade">Identificação</SectionTitle>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:12 }}>
-                  <FieldNFE label="Nº da NF" value={gerais.numero} onChange={v => setGerais(g => ({ ...g, numero:v }))} mono span={1} />
                   <FieldNFE label="Série" value={gerais.serie} onChange={v => setGerais(g => ({ ...g, serie:v }))} mono span={1} />
                   <FieldNFE label="Data emissão" value={gerais.dataEmissao} onChange={v => setGerais(g => ({ ...g, dataEmissao:v }))} type="date" span={2} />
                   <FieldNFE label="Data saída/entrada" value={gerais.dataSaida} onChange={v => setGerais(g => ({ ...g, dataSaida:v }))} type="date" span={2} />
@@ -820,7 +882,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
                 <div style={{ display:'flex', gap:10, padding:'10px 14px', borderRadius:8, background:T.indigoLight, border:`1px solid ${T.indigo}20` }}>
                   <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={T.indigo} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, marginTop:2 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                   <p style={{ fontSize:12, color:T.indigo, lineHeight:1.5 }}>
-                    A antiga seção <strong>"Valores Cliente Consumidor Final — Fora do Estado"</strong> foi removida.
+                    A antiga seção <strong>&ldquo;Valores Cliente Consumidor Final — Fora do Estado&rdquo;</strong> foi removida.
                     O recolhimento interestadual passa a ser representado pelas bases <strong>IBS</strong> e <strong>CBS</strong> acima.
                   </p>
                 </div>
@@ -1055,7 +1117,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
           <div style={{ borderRadius:10, border:`1px solid ${T.gray200}`, background:'#fff', overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
             <div style={{ padding:'14px 18px', borderBottom:`1px solid ${T.gray100}`, background:T.gray50, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <h3 style={{ fontFamily:'DM Sans, sans-serif', fontSize:14, fontWeight:600, color:T.navy }}>Resumo da NF-e</h3>
-              <span style={{ fontSize:11, fontWeight:600, color:T.gray400, fontFamily:'JetBrains Mono, monospace' }}>#{gerais.numero}/{gerais.serie}</span>
+              <span style={{ fontSize:11, fontWeight:600, color:T.gray400, fontFamily:'JetBrains Mono, monospace' }}>Série {gerais.serie}</span>
             </div>
             <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:9 }}>
               {[
