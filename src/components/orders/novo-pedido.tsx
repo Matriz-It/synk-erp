@@ -119,7 +119,9 @@ export function NovoPedido({
     setItens((prev) => prev.filter((i) => i.prodId !== prodId))
   }
 
-  const isEditingPendente = initialOrder?.status === 'pendente'
+  const isEditingExisting = !!initialOrder
+  const isEditingPendentePedido = isEditingExisting && initialOrder?.status === 'pendente' && cfg.showNFe
+  const isEditingQuote = isEditingExisting && !cfg.showNFe
 
   const subtotalItens = itens.reduce((acc, i) => acc + i.preco * i.qtd - (parseFloat(i.desconto) || 0), 0)
   const descGlobal = parseFloat(descontoGlobal) || 0
@@ -178,18 +180,9 @@ export function NovoPedido({
         <span className="rounded-md bg-[#F1F5F9] px-3 py-1.5 font-mono text-[13px] font-semibold text-synk-indigo">
           {cfg.entityCapital} #{initialOrder?.numero ?? proximoNumero}
         </span>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as StatusPedido)}
-          className="h-9 rounded-md border border-[#E2E8F0] bg-white px-3 text-[13px] text-synk-navy focus:outline-none focus:ring-2 focus:ring-synk-indigo/20"
-        >
-          {ALL_STATUS_OPTS
-            .filter((s) => !cfg.allowedStatuses || cfg.allowedStatuses.includes(s))
-            .map((s) => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
-        </select>
         <div className="ml-auto flex gap-2">
-          {isEditingPendente ? (
-            // Modo edição de pedido pendente — só botão NF-e
+          {isEditingPendentePedido ? (
+            // Pedido pendente → Gerar NF-e
             <button
               type="button"
               onClick={async () => {
@@ -199,13 +192,22 @@ export function NovoPedido({
               disabled={!canConfirm || salvando}
               className="flex h-9 items-center gap-1.5 rounded-md bg-[#14b87e] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#0ea068] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {salvando
-                ? <Loader2 className="size-3.5 animate-spin" strokeWidth={1.5} />
-                : <FileText className="size-3.5" strokeWidth={1.5} />}
+              {salvando ? <Loader2 className="size-3.5 animate-spin" strokeWidth={1.5} /> : <FileText className="size-3.5" strokeWidth={1.5} />}
               Gerar NF-e
             </button>
+          ) : isEditingQuote ? (
+            // Edição de orçamento → só Salvar
+            <button
+              type="button"
+              onClick={() => salvar(status)}
+              disabled={!canConfirm || salvando}
+              className="flex h-9 items-center gap-1.5 rounded-md bg-synk-indigo px-4 text-[13px] font-semibold text-white transition-colors hover:bg-synk-indigo-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {salvando ? <Loader2 className="size-3.5 animate-spin" strokeWidth={1.5} /> : <Check className="size-3.5" strokeWidth={2.5} />}
+              Salvar alterações
+            </button>
           ) : (
-            // Modo criação / edição de rascunho
+            // Criação (novo pedido ou novo orçamento)
             <>
               <button type="button" onClick={gerarPDF} disabled={!canConfirm} className="flex h-9 items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white px-3 text-[13px] font-medium text-[#64748B] transition-colors hover:bg-[#F8F9FC] disabled:cursor-not-allowed disabled:opacity-50">
                 <Download className="size-3.5" strokeWidth={1.5} />PDF
@@ -404,6 +406,20 @@ export function NovoPedido({
 
         {/* Sidebar */}
         <div className="flex flex-col gap-4 lg:sticky lg:top-5 lg:self-start">
+          {/* Status */}
+          <div className="rounded-lg border border-[#E2E8F0] bg-white p-4">
+            <label className="mb-2 block text-[13px] font-semibold text-synk-navy">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as StatusPedido)}
+              className="h-10 w-full rounded-md border border-[#E2E8F0] bg-white px-3 text-[13px] text-synk-navy focus:outline-none focus:ring-2 focus:ring-synk-indigo/20"
+            >
+              {ALL_STATUS_OPTS
+                .filter((s) => !cfg.allowedStatuses || cfg.allowedStatuses.includes(s))
+                .map((s) => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
+            </select>
+          </div>
+
           {/* Resumo */}
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5">
             <h3 className="mb-4 text-[13px] font-semibold text-synk-navy">Resumo</h3>

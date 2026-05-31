@@ -38,6 +38,7 @@ export interface OrderViewConfig {
   confirmarLabel: string
   allowedStatuses?: StatusPedido[]   // undefined = todos
   editableStatuses?: StatusPedido[]  // status que abrem o form de edição ao clicar na linha
+  showNFe?: boolean                  // true = botão Gerar NF-e para pedido pendente
 }
 
 const DEFAULT_CONFIG: OrderViewConfig = {

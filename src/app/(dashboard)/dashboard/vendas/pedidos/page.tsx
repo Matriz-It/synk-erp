@@ -12,6 +12,7 @@ const PEDIDO_CONFIG = {
   confirmarLabel: 'Confirmar pedido',
   allowedStatuses: ['pendente', 'em_andamento', 'concluido'] as const,
   editableStatuses: ['pendente'] as const,
+  showNFe: true,
 }
 
 export default async function PedidosPage() {

@@ -1,5 +1,5 @@
 // Statuses exclusivos de orçamentos
-export type StatusOrcamento = 'rascunho' | 'pendente' | 'aprovado' | 'cancelado'
+export type StatusOrcamento = 'rascunho' | 'pendente' | 'aprovado' | 'cancelado' | 'concluido'
 // Statuses exclusivos de pedidos
 export type StatusPedidoOrder = 'pendente' | 'em_andamento' | 'entregue' | 'concluido'
 // União genérica usada no componente compartilhado
