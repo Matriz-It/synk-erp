@@ -16,7 +16,7 @@ const ORCAMENTO_CONFIG = {
   entityCapital: 'Orçamento',
   novoLabel: 'Novo orçamento',
   confirmarLabel: 'Confirmar orçamento',
-  allowedStatuses: ['rascunho', 'pendente', 'cancelado', 'aprovado'] as const,
+  allowedStatuses: ['rascunho', 'pendente', 'cancelado', 'aprovado', 'concluido'] as const,
   editableStatuses: ['rascunho', 'pendente', 'cancelado'] as const,
 }
 

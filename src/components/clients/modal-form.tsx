@@ -57,14 +57,16 @@ function validate(form: ClienteForm): FormErrors {
 }
 
 export function ModalClienteForm({
-  open, onClose, onSave, clienteEdicao,
+  open, onClose, onSave, clienteEdicao, entityName = 'cliente',
 }: {
   open: boolean
   onClose: () => void
   onSave: (data: Omit<Cliente, 'id' | 'criadoEm' | 'totalPedidos' | 'totalGasto'>) => Promise<void>
   clienteEdicao: Cliente | null
+  entityName?: string
 }) {
   const isEditing = !!clienteEdicao
+  const entityCap = entityName.charAt(0).toUpperCase() + entityName.slice(1)
   const [form, setForm] = useState<ClienteForm>(EMPTY_FORM)
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
@@ -160,7 +162,7 @@ export function ModalClienteForm({
                 type="button"
                 disabled={isEditing}
                 onClick={() => !isEditing && handleTipoChange(t)}
-                title={isEditing && isInactive ? 'Tipo do cliente não pode ser alterado após o cadastro' : undefined}
+                title={isEditing && isInactive ? `Tipo do ${entityName} não pode ser alterado após o cadastro` : undefined}
                 className={[
                   'flex-1 py-2.5 text-[13px] font-semibold transition-colors',
                   i === 0 ? 'border-r border-[#E2E8F0]' : '',
@@ -178,7 +180,7 @@ export function ModalClienteForm({
         </div>
         {isEditing && (
           <p className="mt-1 text-[11px] text-[#94A3B8]">
-            O tipo do cliente (PJ/PF) não pode ser alterado após o cadastro.
+            O tipo do {entityName} (PJ/PF) não pode ser alterado após o cadastro.
           </p>
         )}
 
@@ -294,8 +296,8 @@ export function ModalClienteForm({
             className="border-[#94A3B8] data-[state=checked]:border-synk-indigo data-[state=checked]:bg-synk-indigo"
           />
           <div>
-            <p className="text-sm font-medium text-synk-navy">Cliente ativo</p>
-            <p className="text-xs text-[#94A3B8]">Clientes inativos não aparecem em novos pedidos</p>
+            <p className="text-sm font-medium text-synk-navy">{entityCap} ativo</p>
+            <p className="text-xs text-[#94A3B8]">{entityCap}s inativos não aparecem em novos pedidos</p>
           </div>
         </label>
 
@@ -307,7 +309,7 @@ export function ModalClienteForm({
           <Button type="button" onClick={handleSubmit} disabled={saving} className="flex-[2] bg-synk-indigo hover:bg-synk-indigo-hover">
             {saving
               ? <><Loader2 className="size-4 animate-spin" strokeWidth={1.5} />Salvando...</>
-              : <><Check className="size-4" strokeWidth={2} />{isEditing ? 'Salvar alterações' : 'Cadastrar cliente'}</>}
+              : <><Check className="size-4" strokeWidth={2} />{isEditing ? 'Salvar alterações' : `Cadastrar ${entityName}`}</>}
           </Button>
         </div>
       </div>

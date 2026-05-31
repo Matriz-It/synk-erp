@@ -5,17 +5,19 @@ import { ModalWrapper } from '@/components/products/modal-wrapper'
 import { type Cliente, formatBRL, formatDate } from './types'
 
 export function ModalClienteDetalhe({
-  open, onClose, cliente, onEditar, onExcluir,
+  open, onClose, cliente, onEditar, onExcluir, entityName = 'cliente',
 }: {
   open: boolean
   onClose: () => void
   cliente: Cliente | null
   onEditar: () => void
   onExcluir: () => void
+  entityName?: string
 }) {
   if (!cliente) return null
 
   const isPJ = cliente.tipo === 'PJ'
+  const entityCap = entityName.charAt(0).toUpperCase() + entityName.slice(1)
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={cliente.razaoSocial} width="max-w-xl">
@@ -29,7 +31,7 @@ export function ModalClienteDetalhe({
             <span className={`size-[5px] rounded-full ${cliente.ativo ? 'bg-[#14b87e]' : 'bg-[#94A3B8]'}`} />
             {cliente.ativo ? 'Ativo' : 'Inativo'}
           </span>
-          <span className="ml-auto text-[12px] text-[#94A3B8]">Cliente desde {formatDate(cliente.criadoEm)}</span>
+          <span className="ml-auto text-[12px] text-[#94A3B8]">{entityCap} desde {formatDate(cliente.criadoEm)}</span>
         </div>
 
         {/* Stats */}
@@ -57,7 +59,7 @@ export function ModalClienteDetalhe({
         {/* Actions */}
         <div className="flex gap-2 border-t border-[#F1F5F9] pt-4">
           <Button type="button" onClick={onEditar} className="flex-[2] bg-synk-indigo text-[13px] hover:bg-synk-indigo-hover">
-            <Settings className="size-3.5" strokeWidth={1.5} />Editar cliente
+            <Settings className="size-3.5" strokeWidth={1.5} />Editar {entityName}
           </Button>
           <button
             type="button"

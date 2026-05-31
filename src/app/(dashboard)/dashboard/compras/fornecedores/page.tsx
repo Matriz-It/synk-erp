@@ -1,6 +1,7 @@
-import { Factory } from "lucide-react"
-import { ComingSoon } from "@/components/dashboard/coming-soon"
+import { listSuppliersAction } from "@/app/actions/suppliers"
+import { FornecedoresView } from "@/components/suppliers/fornecedores-view"
 
-export default function FornecedoresPage() {
-  return <ComingSoon label="Fornecedores" icon={Factory} />
+export default async function FornecedoresPage() {
+  const initialFornecedores = await listSuppliersAction().catch(() => [])
+  return <FornecedoresView initialFornecedores={initialFornecedores} />
 }
