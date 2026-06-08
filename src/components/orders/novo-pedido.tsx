@@ -37,15 +37,18 @@ export function NovoPedido({
   produtos,
   config: cfg = DEFAULT_FORM_CONFIG,
   initialOrder,
+  parceiroLabel,
 }: {
   onVoltar: () => void
-  onSalvar: (data: { clientId: string; status: StatusPedido; obs: string; descontoGlobal: number; formaPagamento: string; dataPagamento: string; items: PedidoItem[] }) => Promise<void>
+  onSalvar: (data: import('@/components/orders/pedidos-view').OrderSavePayload) => Promise<void>
   proximoNumero: number
   clientes: Cliente[]
   produtos: Produto[]
   config?: OrderViewConfig
   initialOrder?: OrderDetail
+  parceiroLabel?: string
 }) {
+  const parceiroLbl = parceiroLabel ?? cfg.parceiroLabel ?? 'Cliente'
   const [status, setStatus] = useState<StatusPedido>(initialOrder?.status ?? 'rascunho')
   const [clienteSel, setClienteSel] = useState<Cliente | null>(() =>
     initialOrder ? (clientes.find((c) => c.id === initialOrder.clienteId) ?? null) : null
@@ -151,11 +154,11 @@ export function NovoPedido({
     if (!clienteSel || itens.length === 0) return
     const win = window.open('', '_blank')
     if (!win) return
-    const cfg = STATUS_CFG[status]
+    const statusCfg = STATUS_CFG[status]
     win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${cfg.entityCapital} #${proximoNumero}</title>
-    <style>body{font-family:sans-serif;padding:32px;color:#0f172a}.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:4px;background:${cfg.bg};color:${cfg.color};font-size:12px;font-weight:600}.dot{width:6px;height:6px;border-radius:50%;background:${cfg.dot};display:inline-block}.row{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}.footer{margin-top:32px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px}</style>
+    <style>body{font-family:sans-serif;padding:32px;color:#0f172a}.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:4px;background:${statusCfg.bg};color:${statusCfg.color};font-size:12px;font-weight:600}.dot{width:6px;height:6px;border-radius:50%;background:${statusCfg.dot};display:inline-block}.row{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}.footer{margin-top:32px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px}</style>
     </head><body>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><h2 style="margin:0">${cfg.entityCapital} #${proximoNumero}</h2><span class="badge"><span class="dot"></span>${cfg.label}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><h2 style="margin:0">${cfg.entityCapital} #${proximoNumero}</h2><span class="badge"><span class="dot"></span>${statusCfg.label}</span></div>
     <div style="background:#f8f9fc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin-bottom:16px"><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">CLIENTE</div><div style="font-weight:600">${clienteSel.razaoSocial}</div></div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px"><thead><tr style="background:#f8f9fc"><th style="text-align:left;padding:8px 12px;font-size:11px;color:#64748b">Produto</th><th style="text-align:right;padding:8px 12px;font-size:11px;color:#64748b">Qtd</th><th style="text-align:right;padding:8px 12px;font-size:11px;color:#64748b">Unit.</th><th style="text-align:right;padding:8px 12px;font-size:11px;color:#64748b">Total</th></tr></thead><tbody>
     ${itens.map((i) => `<tr style="border-top:1px solid #f1f5f9"><td style="padding:8px 12px">${i.nome}</td><td style="padding:8px 12px;text-align:right">${i.qtd}</td><td style="padding:8px 12px;text-align:right;font-family:monospace">${formatBRL(i.preco)}</td><td style="padding:8px 12px;text-align:right;font-family:monospace">${formatBRL(i.preco * i.qtd - (parseFloat(i.desconto) || 0))}</td></tr>`).join('')}
@@ -182,19 +185,31 @@ export function NovoPedido({
         </span>
         <div className="ml-auto flex gap-2">
           {isEditingPendentePedido ? (
-            // Pedido pendente → Gerar NF-e
-            <button
-              type="button"
-              onClick={async () => {
-                await salvar(status)
-                toast.info('Geração de NF-e em breve — módulo fiscal em desenvolvimento.')
-              }}
-              disabled={!canConfirm || salvando}
-              className="flex h-9 items-center gap-1.5 rounded-md bg-[#14b87e] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#0ea068] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {salvando ? <Loader2 className="size-3.5 animate-spin" strokeWidth={1.5} /> : <FileText className="size-3.5" strokeWidth={1.5} />}
-              Gerar NF-e
-            </button>
+            // Pedido pendente → duas opções
+            <>
+              <button
+                type="button"
+                onClick={() => salvar('concluido')}
+                disabled={!canConfirm || salvando}
+                title="Venda de porta, pagamento na hora — sem necessidade de NF-e"
+                className="flex h-9 items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white px-3 text-[13px] font-medium text-[#334155] transition-colors hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {salvando ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" strokeWidth={2} />}
+                Concluir sem NF-e
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await salvar(status)
+                  toast.info('Geração de NF-e em breve — módulo fiscal em desenvolvimento.')
+                }}
+                disabled={!canConfirm || salvando}
+                className="flex h-9 items-center gap-1.5 rounded-md bg-[#14b87e] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#0ea068] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {salvando ? <Loader2 className="size-3.5 animate-spin" strokeWidth={1.5} /> : <FileText className="size-3.5" strokeWidth={1.5} />}
+                Gerar NF-e
+              </button>
+            </>
           ) : isEditingQuote ? (
             // Edição de orçamento → só Salvar
             <button
@@ -227,9 +242,9 @@ export function NovoPedido({
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
         {/* Main */}
         <div className="flex flex-col gap-5">
-          {/* Cliente */}
+          {/* Cliente / Fornecedor */}
           <section className="rounded-lg border border-[#E2E8F0] bg-white p-5">
-            <h3 className="mb-3 text-[13px] font-semibold text-synk-navy">Cliente</h3>
+            <h3 className="mb-3 text-[13px] font-semibold text-synk-navy">{parceiroLbl}</h3>
             {clienteSel ? (
               <div className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-[#F8F9FC] p-3">
                 <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold ${clienteSel.tipo === 'PJ' ? 'bg-synk-indigo-light text-synk-indigo' : 'bg-[#d1fae5] text-[#14b87e]'}`}>{clienteSel.tipo}</span>
@@ -246,7 +261,7 @@ export function NovoPedido({
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.5} />
                   <Input
-                    placeholder="Buscar cliente por nome ou documento..."
+                    placeholder={`Buscar ${parceiroLbl.toLowerCase()} por nome ou documento...`}
                     value={buscaCliente}
                     onChange={(e) => { setBuscaCliente(e.target.value); setShowClientes(true) }}
                     onFocus={() => setShowClientes(true)}
@@ -455,7 +470,7 @@ export function NovoPedido({
 
             {!clienteSel && (
               <div className="mt-4 flex items-center gap-2 rounded-md bg-[#FEF3C7] px-3 py-2.5 text-[12px] font-medium text-[#f59e0b]">
-                <AlertTriangle className="size-3.5 shrink-0" strokeWidth={1.5} />Selecione um cliente
+                <AlertTriangle className="size-3.5 shrink-0" strokeWidth={1.5} />Selecione um {parceiroLbl.toLowerCase()}
               </div>
             )}
             {itens.length === 0 && (

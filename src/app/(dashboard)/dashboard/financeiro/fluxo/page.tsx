@@ -1,6 +1,13 @@
-import { Wallet } from "lucide-react"
-import { ComingSoon } from "@/components/dashboard/coming-soon"
+import { getCashflowAction } from "@/app/actions/cashflow"
+import { FluxoView } from "@/components/finance/fluxo-view"
 
-export default function FluxoCaixaPage() {
-  return <ComingSoon label="Fluxo de Caixa" icon={Wallet} />
+export default async function FluxoCaixaPage() {
+  const mes = new Date().toISOString().slice(0, 7)
+  const initialData = await getCashflowAction({ mes }).catch(() => ({
+    saldoInicial: 0,
+    totais: { entradas: 0, saidas: 0, saldo: 0, saldoAtual: 0 },
+    lancamentos: [],
+  }))
+
+  return <FluxoView initialData={initialData} />
 }

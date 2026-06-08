@@ -1,9 +1,11 @@
 // Statuses exclusivos de orçamentos
 export type StatusOrcamento = 'rascunho' | 'pendente' | 'aprovado' | 'cancelado' | 'concluido'
-// Statuses exclusivos de pedidos
+// Statuses exclusivos de pedidos de venda
 export type StatusPedidoOrder = 'pendente' | 'em_andamento' | 'entregue' | 'concluido'
+// Statuses exclusivos de pedidos de compra
+export type StatusCompra = 'recebido' | 'cancelado'
 // União genérica usada no componente compartilhado
-export type StatusPedido = StatusOrcamento | StatusPedidoOrder
+export type StatusPedido = StatusOrcamento | StatusPedidoOrder | StatusCompra
 
 export interface Pedido {
   id: string       // UUID — usado em chamadas à API
@@ -53,6 +55,8 @@ export const STATUS_CFG: Record<StatusPedido, { label: string; bg: string; color
   em_andamento: { label: 'Em andamento', bg: '#EEF0FF', color: '#3D3EBF', dot: '#3D3EBF' },
   entregue:    { label: 'Entregue',     bg: '#D1FAE5', color: '#14B87E', dot: '#14B87E' },
   concluido:   { label: 'Concluído',    bg: '#F1F5F9', color: '#334155', dot: '#64748B' },
+  // Pedido de compra
+  recebido:    { label: 'Recebido',     bg: '#EEF0FF', color: '#3D3EBF', dot: '#3D3EBF' },
 }
 
 export function formatBRL(v: number): string {

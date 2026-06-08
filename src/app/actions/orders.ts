@@ -10,6 +10,7 @@ function handleAuth(err: unknown): never {
 }
 
 export interface OrderDetail extends Pedido {
+  descontoGlobal?: number
   items: Array<{
     id: string
     productId: string

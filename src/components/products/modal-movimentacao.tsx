@@ -39,7 +39,7 @@ export function ModalMovimentacao({
     const errs: { qtd?: string; motivo?: string } = {}
     if (!qtd.trim() || qtdNum <= 0) {
       errs.qtd = 'Informe uma quantidade válida'
-    } else if (tipo === 'saida' && qtdNum > produto.qtd) {
+    } else if (tipo === 'saida' && produto && qtdNum > produto.qtd) {
       errs.qtd = `Quantidade superior ao estoque disponível (${produto.qtd} un.)`
     }
     if (!motivo.trim()) errs.motivo = 'Informe o motivo'

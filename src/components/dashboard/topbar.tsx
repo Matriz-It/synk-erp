@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { NAVIGATION } from "@/components/dashboard/navigation"
 import { logoutAction, type MeData } from "@/app/actions/auth"
+import { type AppNotification } from "@/app/actions/notifications"
 import { cn } from "@/lib/utils"
 
 interface TopbarProps {
   onMenuClick: () => void
   me: MeData | null
+  notifications: AppNotification[]
 }
 
 function initials(name: string) {
@@ -23,33 +25,15 @@ function initials(name: string) {
 
 const PLAN_LABEL: Record<string, string> = { free: 'Plano Free', pro: 'Plano Pro', enterprise: 'Enterprise' }
 
-// ── Notificações ────────────────────────────────────────────────
-
-type Tone = 'danger' | 'warning' | 'info'
-
-interface Notif {
-  id: number
-  title: string
-  sub: string
-  time: string
-  tone: Tone
-}
-
-const NOTIFICACOES: Notif[] = [
-  { id: 1, title: '5 boletos vencem em 3 dias', sub: 'Total de R$ 8.430 a receber', time: 'há 10 min', tone: 'warning' },
-  { id: 2, title: 'Novo pedido #1082', sub: 'Distribuidora ABC — R$ 3.200', time: 'há 1h', tone: 'info' },
-  { id: 3, title: '3 contas vencidas há +30 dias', sub: 'Lima Distribuidora — R$ 4.120', time: 'há 2h', tone: 'danger' },
-]
-
-const TONE_COLOR: Record<Tone, string> = {
+const TONE_COLOR: Record<AppNotification['tone'], string> = {
   danger: '#ef4444',
   warning: '#f59e0b',
   info: '#3d3ebf',
 }
 
-function NotificationsButton() {
+function NotificationsButton({ initialNotifications }: { initialNotifications: AppNotification[] }) {
   const [open, setOpen] = useState(false)
-  const [notifs, setNotifs] = useState<Notif[]>(NOTIFICACOES)
+  const [notifs, setNotifs] = useState<AppNotification[]>(initialNotifications)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -105,14 +89,10 @@ function NotificationsButton() {
                   i < notifs.length - 1 && 'border-b border-[#F1F5F9]',
                 )}
               >
-                <span
-                  className="mt-[5px] size-2 shrink-0 rounded-full"
-                  style={{ background: TONE_COLOR[n.tone] }}
-                />
+                <span className="mt-[5px] size-2 shrink-0 rounded-full" style={{ background: TONE_COLOR[n.tone] }} />
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-medium text-synk-navy">{n.title}</p>
                   <p className="text-[12px] text-[#64748B]">{n.sub}</p>
-                  <p className="mt-0.5 text-[11px] text-[#94A3B8]">{n.time}</p>
                 </div>
               </div>
             ))
@@ -125,7 +105,7 @@ function NotificationsButton() {
 
 // ── Topbar ───────────────────────────────────────────────────────
 
-export function Topbar({ onMenuClick, me }: TopbarProps) {
+export function Topbar({ onMenuClick, me, notifications }: TopbarProps) {
   const userName = me?.user.name || me?.user.email || '—'
   const userInitials = initials(userName)
   const planLabel = PLAN_LABEL[me?.tenant.plan ?? ''] ?? ''
@@ -174,7 +154,7 @@ export function Topbar({ onMenuClick, me }: TopbarProps) {
         </div>
       </div>
 
-      <NotificationsButton />
+      <NotificationsButton initialNotifications={notifications} />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

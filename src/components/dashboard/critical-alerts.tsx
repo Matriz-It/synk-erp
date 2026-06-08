@@ -1,6 +1,9 @@
 import { AlertTriangle, ArrowRight, Clock, PackageX } from "lucide-react"
 import Link from "next/link"
 
+const formatBRL = (v: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(v)
+
 interface Alert {
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
   title: string
@@ -12,9 +15,11 @@ interface Alert {
 export function CriticalAlerts({
   abaixoMinimo,
   semEstoque,
+  boletosVencendo,
 }: {
   abaixoMinimo: number
   semEstoque: number
+  boletosVencendo: { count: number; valor: number }
 }) {
   const alerts: Alert[] = []
 
@@ -38,31 +43,35 @@ export function CriticalAlerts({
     })
   }
 
-  // Alertas financeiros (mock até ter backend financeiro)
-  alerts.push(
-    {
+  if (boletosVencendo.count > 0) {
+    alerts.push({
       icon: Clock,
-      title: "5 boletos vencem em 3 dias",
-      description: "Total de R$ 8.430 a receber até 02/05.",
-      href: "/dashboard/financeiro/receber",
+      title: `${boletosVencendo.count} conta${boletosVencendo.count !== 1 ? "s" : ""} a pagar vencendo`,
+      description: `Total de ${formatBRL(boletosVencendo.valor)} nos próximos 7 dias.`,
+      href: "/dashboard/financeiro/pagar",
       tone: "info",
-    },
-    {
+    })
+  }
+
+  if (alerts.length === 0) {
+    alerts.push({
       icon: AlertTriangle,
-      title: "3 contas vencidas há +30 dias",
-      description: "Cliente Lima Distribuidora — R$ 4.120.",
-      href: "/dashboard/financeiro/receber",
-      tone: "danger",
-    },
-  )
+      title: "Nenhum alerta no momento",
+      description: "Estoque e financeiro estão em dia.",
+      href: "/dashboard",
+      tone: "info",
+    })
+  }
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base font-semibold text-synk-navy">Atenção</h2>
-        <span className="rounded-sm bg-synk-warning-bg px-1.5 py-0.5 text-[11px] font-semibold text-synk-warning">
-          {alerts.length} alerta{alerts.length !== 1 ? "s" : ""}
-        </span>
+        {alerts.length > 0 && alerts[0].href !== "/dashboard" && (
+          <span className="rounded-sm bg-synk-warning-bg px-1.5 py-0.5 text-[11px] font-semibold text-synk-warning">
+            {alerts.length} alerta{alerts.length !== 1 ? "s" : ""}
+          </span>
+        )}
       </div>
 
       <ul className="space-y-2.5">

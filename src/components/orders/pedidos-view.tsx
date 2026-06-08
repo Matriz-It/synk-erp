@@ -10,9 +10,19 @@ import { StatusBadge } from './status-badge'
 import { toast } from 'sonner'
 import { createOrderAction, getOrderAction, updateOrderFullAction, type OrderDetail } from '@/app/actions/orders'
 
+export interface OrderSavePayload {
+  clientId: string
+  status: StatusPedido
+  obs: string
+  descontoGlobal: number
+  formaPagamento: string
+  dataPagamento: string
+  items: PedidoItem[]
+}
+
 export interface OrderViewActions {
-  create: (data: { clientId: string; status: StatusPedido; obs: string; descontoGlobal: number; items: PedidoItem[] }) => Promise<Pedido>
-  updateFull: (id: string, data: { status: StatusPedido; obs: string; descontoGlobal: number; items: PedidoItem[] }) => Promise<Pedido>
+  create: (data: OrderSavePayload) => Promise<Pedido>
+  updateFull: (id: string, data: OrderSavePayload) => Promise<Pedido>
   getDetail: (id: string) => Promise<OrderDetail>
   convertToOrder?: (id: string) => Promise<Pedido>
 }
@@ -36,9 +46,10 @@ export interface OrderViewConfig {
   entityCapital: string
   novoLabel: string
   confirmarLabel: string
-  allowedStatuses?: StatusPedido[]   // undefined = todos
-  editableStatuses?: StatusPedido[]  // status que abrem o form de edição ao clicar na linha
-  showNFe?: boolean                  // true = botão Gerar NF-e para pedido pendente
+  allowedStatuses?: readonly StatusPedido[]   // undefined = todos
+  editableStatuses?: readonly StatusPedido[]  // status que abrem o form de edição ao clicar na linha
+  showNFe?: boolean                           // true = botão Gerar NF-e para pedido pendente
+  parceiroLabel?: string                      // 'Cliente' (padrão) ou 'Fornecedor'
 }
 
 const DEFAULT_CONFIG: OrderViewConfig = {
@@ -55,6 +66,7 @@ const ALL_STATUS_FILTROS: { key: StatusPedido; label: string }[] = [
   { key: 'pendente',     label: 'Pendente'     },
   { key: 'aprovado',     label: 'Aprovado'     },
   { key: 'cancelado',    label: 'Cancelado'    },
+  { key: 'recebido',     label: 'Recebido'     },
   { key: 'em_andamento', label: 'Em andamento' },
   { key: 'entregue',     label: 'Entregue'     },
   { key: 'concluido',    label: 'Concluído'    },
@@ -105,10 +117,7 @@ export function PedidosView({
   const proximoNumero = pedidos.length > 0 ? Math.max(...pedidos.map((p) => p.numero)) + 1 : 1000
   const totalFiltrado = filtrados.reduce((a, p) => a + p.total, 0)
 
-  async function handleSalvar(data: {
-    clientId: string; status: StatusPedido; obs: string
-    descontoGlobal: number; formaPagamento: string; dataPagamento: string; items: PedidoItem[]
-  }) {
+  async function handleSalvar(data: OrderSavePayload) {
     try {
       if (editingOrder) {
         const updated = await act.updateFull(editingOrder.id, data)
@@ -150,6 +159,7 @@ export function PedidosView({
         onSalvar={handleSalvar}
         proximoNumero={proximoNumero}
         clientes={clientes}
+        parceiroLabel={cfg.parceiroLabel}
         produtos={produtos}
         config={cfg}
         initialOrder={editingOrder ?? undefined}
@@ -184,7 +194,7 @@ export function PedidosView({
       <div className="flex flex-col gap-3 rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.5} />
-          <Input placeholder={`Buscar por cliente ou nº do ${cfg.entity}...`}value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 pl-9 text-sm" />
+          <Input placeholder={`Buscar por ${cfg.parceiroLabel?.toLowerCase() ?? 'cliente'} ou nº do ${cfg.entity}...`} value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 pl-9 text-sm" />
         </div>
         <div className="flex flex-wrap gap-1.5">
           {statusFiltros.map(({ key, label }) => (
@@ -216,7 +226,7 @@ export function PedidosView({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#E2E8F0] bg-[#F8F9FC]">
-                  {[cfg.entityCapital, 'Cliente', 'Itens', 'Subtotal', 'Desconto', 'Total', 'Status', 'Data', ''].map((h, i) => (
+                  {[cfg.entityCapital, cfg.parceiroLabel ?? 'Cliente', 'Itens', 'Subtotal', 'Desconto', 'Total', 'Status', 'Data', ''].map((h, i) => (
                     <th key={i} className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] ${[2, 3, 4, 5].includes(i) ? 'text-right' : i === 6 ? 'text-center' : 'text-left'}`}>{h}</th>
                   ))}
                 </tr>
