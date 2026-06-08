@@ -28,7 +28,7 @@ export function ModalDetalhe({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={produto.nome} width="max-w-2xl">
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
         <div className="grid grid-cols-3 gap-3">
           <InfoCard
             label="Estoque atual"

@@ -111,7 +111,7 @@ export function ModalCadastro({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={isEditing ? 'Editar Produto' : 'Novo Produto'}>
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
         <div className="flex flex-col items-center gap-2">
           <div className="flex size-20 items-center justify-center rounded-xl border-2 border-dashed border-[#E2E8F0] bg-[#F8F9FC]">
             <Package className="size-8 text-[#94A3B8]" strokeWidth={1.5} />
@@ -128,7 +128,7 @@ export function ModalCadastro({
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="SKU" error={errors.sku} required>
             <Input
               placeholder="Ex: SKU-009"
@@ -150,7 +150,7 @@ export function ModalCadastro({
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Preço de venda" error={errors.preco} required>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#94A3B8]">R$</span>

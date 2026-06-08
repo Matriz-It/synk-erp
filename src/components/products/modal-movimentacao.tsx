@@ -57,7 +57,7 @@ export function ModalMovimentacao({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title="Movimentação de Estoque">
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
         <div className="flex items-center gap-3 rounded-lg bg-[#F8F9FC] p-3">
           <div className="flex size-10 items-center justify-center rounded-lg bg-synk-indigo-light">
             <Package className="size-5 text-synk-indigo" strokeWidth={1.5} />

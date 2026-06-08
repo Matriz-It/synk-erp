@@ -57,7 +57,7 @@ export function ModalDetalhePedido({
 
   return (
     <ModalWrapper open onClose={onClose} title={`Pedido #${pedido.numero}`} width="max-w-md">
-      <div className="space-y-4 p-6">
+      <div className="space-y-4 p-4 sm:p-6">
         {/* Status + data */}
         <div className="flex items-center gap-2">
           <StatusBadge status={pedido.status} />
@@ -72,7 +72,7 @@ export function ModalDetalhePedido({
 
         {/* Pagamento */}
         {(pedido.formaPagamento || pedido.dataPagamento) && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {pedido.formaPagamento && (
               <div className="rounded-lg border border-[#E2E8F0] bg-[#F8F9FC] p-3">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-[#94A3B8]">Forma de pagamento</p>

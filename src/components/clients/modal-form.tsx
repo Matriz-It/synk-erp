@@ -149,7 +149,7 @@ export function ModalClienteForm({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={isEditing ? 'Editar Cliente' : 'Novo Cliente'} width="max-w-2xl">
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
 
         {/* Tipo tabs */}
         <div className="flex overflow-hidden rounded-lg border border-[#E2E8F0]">
@@ -194,7 +194,7 @@ export function ModalClienteForm({
           />
         </F>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {form.tipo === 'PJ' && (
             <F label="Nome fantasia">
               <Input placeholder="Nome comercial" value={form.nomeFantasia} onChange={(e) => set('nomeFantasia', e.target.value)} />
@@ -237,7 +237,7 @@ export function ModalClienteForm({
         </div>
 
         {/* Endereço */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <F label="CEP *" error={errors.cep || cepError}>
             <div className="relative">
               <Input
@@ -259,7 +259,7 @@ export function ModalClienteForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <F label="Número *" error={errors.numero}>
             <Input placeholder="1000" value={form.numero} onChange={(e) => set('numero', e.target.value)} className={err(errors.numero)} />
           </F>
@@ -271,7 +271,7 @@ export function ModalClienteForm({
           </F>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <F label="UF">
             <select
               value={form.uf}

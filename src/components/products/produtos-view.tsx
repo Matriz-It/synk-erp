@@ -182,7 +182,7 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
   const existingSkus = produtos.map((p) => p.sku)
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-synk-navy">Produtos</h1>

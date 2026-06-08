@@ -90,14 +90,14 @@ export function ModalContaForm({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={isEditing ? 'Editar conta' : 'Nova conta'}>
-      <div className="space-y-4 p-6">
+      <div className="space-y-4 p-4 sm:p-6">
         <F label={`${parceiroLabel} *`} error={errors.parceiro}>
           <Input placeholder="Nome" value={form.parceiro} onChange={e => set('parceiro', e.target.value)} className={err(errors.parceiro)} />
         </F>
         <F label="Descrição *" error={errors.descricao}>
           <Input placeholder="Ex: NF 1234, Aluguel maio..." value={form.descricao} onChange={e => set('descricao', e.target.value)} className={err(errors.descricao)} />
         </F>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <F label="Valor *" error={errors.valor}>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#94A3B8]">R$</span>

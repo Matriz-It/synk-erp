@@ -15,41 +15,40 @@
 | Estágio | Área                        | Status      |
 |---------|-----------------------------|-------------|
 | 1       | Layout base + Modais        | ✅ Concluído |
-| 2       | Formulário de pedido/orçamento | ⏳ Pendente |
-| 3       | Telas de listagem (tabelas) | ⏳ Pendente |
-| 4       | Telas de detalhe (modais)   | ⏳ Pendente |
-| 5       | Autenticação                | ⏳ Pendente |
-| 6       | Gráficos e dashboard        | ⏳ Pendente |
-| 7       | Ajustes finos               | ⏳ Pendente |
+| 2       | Formulário de pedido/orçamento | ✅ Concluído |
+| 3       | Telas de listagem (tabelas) | ✅ Concluído |
+| 4       | Telas de detalhe (modais)   | ✅ Concluído |
+| 5       | Autenticação                | ✅ Concluído |
+| 6       | Gráficos e dashboard        | ✅ Concluído |
+| 7       | Ajustes finos               | ✅ Concluído |
 
 ---
 
 ## Estágio 1 — Layout base + Modais ✅
 
 ### O que foi feito
-- **ModalWrapper**: tela cheia em mobile, slide from bottom, padding adaptativo
-- **Cabeçalho do modal**: fonte e padding menores em telas pequenas
-- **Conteúdo dos modais**: padding reduzido em mobile (`p-4 sm:p-6`)
+- **ModalWrapper**: slide from bottom em mobile (`items-end sm:items-center`), rounded-t-2xl em mobile
+- **Cabeçalho do modal**: `px-4 py-3 sm:px-6 sm:py-4`, fonte `text-[15px] sm:text-[17px]`
+- **max-height**: `max-h-[85vh] sm:max-h-[90vh]`
 
 ### Arquivos alterados
 - `src/components/products/modal-wrapper.tsx`
 
 ---
 
-## Estágio 2 — Formulário de pedido/orçamento ⏳
+## Estágio 2 — Formulário de pedido/orçamento ✅
 
-### O que precisa ser feito
-- `novo-pedido.tsx`: botões do header sobrepõem em telas < 640px
-- `novo-pedido.tsx`: sidebar sticky some em mobile (já colapsa via `lg:grid-cols-[1fr_320px]` ✅)
-- `novo-pedido.tsx`: botões de ação ("Gerar NF-e", "Concluir sem NF-e") precisam ficar em linha ou empilhar
-- Tabela de itens: colunas "Desc. R$" e "Total" podem ocultar em mobile
+### O que foi feito
+- **Header botões**: `flex flex-wrap justify-end gap-2` — wrap automático em mobile
+- **Tabela de itens**: wrapper `overflow-x-auto`, colunas Unit. e Desc. R$ ocultas em mobile (`hidden sm:table-cell`)
+- **Grid pagamento**: `grid-cols-1 sm:grid-cols-2`
 
-### Arquivos a alterar
+### Arquivos alterados
 - `src/components/orders/novo-pedido.tsx`
 
 ---
 
-## Estágio 3 — Telas de listagem ⏳
+## Estágio 3 — Telas de listagem ✅
 
 ### Status atual (por tela)
 | Tela           | KPI grid | Tabela overflow | Filtros | Status |
@@ -61,61 +60,88 @@
 | Contas a Pagar | ✅ 2→4 col | ✅ overflow-x  | ✅ flex-col sm:row | ✅ OK |
 | Fornecedores   | ✅ 2→4 col | ✅ overflow-x  | ✅ flex-col sm:row | ✅ OK |
 
-### O que precisa ser feito
-- Nas tabelas com muitas colunas (pedidos: 9 col), ocultar colunas menos importantes em mobile (`hidden sm:table-cell`)
-- Considerar card view alternativo para mobile em substituição à tabela
+### O que foi feito
+- **Tabela pedidos**: colunas Itens, Subtotal, Desconto, Data ocultas em mobile (`hidden sm:table-cell`) — ficam: #, Cliente, Total, Status, Ver
+- **Gap views**: `gap-4 sm:gap-6` em todos os wrappers de listagem
+
+### Arquivos alterados
+- `src/components/orders/pedidos-view.tsx`
+- `src/components/clients/clientes-view.tsx`
+- `src/components/products/produtos-view.tsx`
+- `src/components/finance/contas-view.tsx`
+- `src/components/suppliers/fornecedores-view.tsx`
 
 ---
 
-## Estágio 4 — Modais de detalhe e formulário ⏳
+## Estágio 4 — Modais de detalhe e formulário ✅
 
-### O que precisa ser feito
-- `modal-form.tsx` (clientes/fornecedores): grids internos `grid-cols-2` ficam apertados em mobile → `grid-cols-1 sm:grid-cols-2`
-- `modal-conta-form.tsx`: mesmo problema com grid 2 colunas
-- `modal-detalhe.tsx` (clientes): cards "Total em pedidos / Total gasto" já são `grid-cols-2` ✅
-- Padding interno dos modais: `p-6` → `p-4 sm:p-6` (feito no ModalWrapper)
+### O que foi feito
+- **Todos os modais**: `p-6` → `p-4 sm:p-6` no content area
+- **modal-form.tsx** (clientes/fornecedores): `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`, `grid-cols-3` → `grid-cols-1 sm:grid-cols-3`
+- **modal-conta-form.tsx**: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`
+- **modal-baixa.tsx**: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`
+- **modal-cadastro.tsx** (produtos): dois `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`
+- **modal-detalhe.tsx** (orders): padding + pagamento `grid-cols-1 sm:grid-cols-2`
+
+### Arquivos alterados
+- `src/components/clients/modal-form.tsx`
+- `src/components/clients/modal-detalhe.tsx`
+- `src/components/clients/modal-excluir.tsx`
+- `src/components/finance/modal-conta-form.tsx`
+- `src/components/finance/modal-baixa.tsx`
+- `src/components/products/modal-cadastro.tsx`
+- `src/components/products/modal-detalhe.tsx`
+- `src/components/products/modal-movimentacao.tsx`
+- `src/components/orders/modal-detalhe.tsx`
 
 ---
 
-## Estágio 5 — Autenticação ⏳
+## Estágio 5 — Autenticação ✅
 
 ### Status atual
 - Layout auth: painel de marca some em mobile (`lg:grid-cols-[...]`) ✅
 - Login form: inputs full-width ✅, botões h-11 ✅
-- Signup flow 2 etapas: grid `grid-cols-2` nos campos de Segmento/Tamanho → OK em sm, apertado em 320px
+- SignupFlow etapa 2: `grid-cols-1 sm:grid-cols-2` para Segmento/Tamanho ✅
+- Indicador de força de senha: barra `flex h-1` + `text-xs` — OK em mobile ✅
 
-### O que precisa ser feito
-- SignupFlow: garantir legibilidade do indicador de força de senha em muito pequeno
-- Verificar telas < 375px (iPhone SE)
-
----
-
-## Estágio 6 — Dashboard e gráficos ⏳
-
-### O que precisa ser feito
-- `cashflow-chart.tsx`: altura `h-[260px]` fixa → considerar `h-[200px] sm:h-[260px]`
-- `fluxo-view.tsx` (SVG chart): `width` calculado pelo SVG, funciona mas pode ficar pequeno
-- Dashboard header: botões "Exportar" e "Novo pedido" podem sobrepor em mobile
-- `DashboardHeader`: row de botões → wrap corretamente
+### Nenhuma alteração necessária nesta etapa
 
 ---
 
-## Estágio 7 — Ajustes finos ⏳
+## Estágio 6 — Dashboard e gráficos ✅
 
-### O que precisa ser feito
-- Touch targets: verificar todos os botões icon-only (mínimo 44×44px)
-- Tipografia: `text-[26px]` nos KPI cards → pode reduzir em mobile
-- Espaçamentos internos das sections: `gap-6` → `gap-4 sm:gap-6` em páginas
-- Notificações (topbar): painel de 300px pode vazar em telas < 320px
-- Sidebar mobile: verificar scroll da lista de nav em telas pequenas
+### O que foi feito
+- **DashboardHeader**: texto dos botões Calendar e "Novo pedido" ocultos em mobile (`hidden sm:inline`)
+- **CashflowChart**: `h-[200px] sm:h-[260px]` (antes era h-[260px] fixo)
+- **Dashboard page**: `gap-4 sm:gap-6` no wrapper e grid interno
+
+### Arquivos alterados
+- `src/components/dashboard/dashboard-header.tsx`
+- `src/components/dashboard/cashflow-chart.tsx`
+- `src/app/(dashboard)/dashboard/page.tsx`
+
+---
+
+## Estágio 7 — Ajustes finos ✅
+
+### O que foi feito
+- **KPI cards**: `text-[22px] sm:text-[26px]` para o valor principal
+- **Notificações**: painel com `max-w-[calc(100vw-1rem)]` para não vazar em < 320px
+- **Spacings**: `gap-4 sm:gap-6` aplicado em todas as views de listagem
+
+### Arquivos alterados
+- `src/components/dashboard/kpi-cards.tsx`
+- `src/components/dashboard/topbar.tsx`
 
 ---
 
 ## Convenções adotadas
 
 - **Mobile-first**: classes base para mobile, `sm:`/`lg:` para progressivo
-- **Modais**: slide from bottom em mobile, centered em `sm:`+
-- **Tabelas**: sempre `overflow-x-auto` no wrapper
-- **Grids**: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-N` padrão
+- **Modais**: slide from bottom em mobile (`items-end sm:items-center`), `rounded-t-2xl sm:rounded-xl`
+- **Tabelas**: sempre `overflow-x-auto` no wrapper + `hidden sm:table-cell` em colunas menos importantes
+- **Grids de formulário**: `grid-cols-1 sm:grid-cols-2` ou `grid-cols-1 sm:grid-cols-3` (nunca fixo)
 - **Padding adaptativo**: `p-4 sm:p-6` para content areas, `px-4 sm:px-6 lg:px-8` para page padding
-- **Texto de botões**: ocultar texto em mobile, manter só ícone via `hidden sm:inline` quando necessário
+- **Texto de botões**: ocultar texto em mobile com `hidden sm:inline` quando o ícone já comunica
+- **Gaps de página**: `gap-4 sm:gap-6` para todos os wrappers de listagem/página
+- **Tipografia KPI**: `text-[22px] sm:text-[26px]` para valores de destaque

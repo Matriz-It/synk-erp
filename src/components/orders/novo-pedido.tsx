@@ -183,7 +183,7 @@ export function NovoPedido({
         <span className="rounded-md bg-[#F1F5F9] px-3 py-1.5 font-mono text-[13px] font-semibold text-synk-indigo">
           {cfg.entityCapital} #{initialOrder?.numero ?? proximoNumero}
         </span>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap justify-end gap-2">
           {isEditingPendentePedido ? (
             // Pedido pendente → duas opções
             <>
@@ -326,61 +326,63 @@ export function NovoPedido({
               <div className="px-5 pt-5 pb-3">
                 <h3 className="text-[13px] font-semibold text-synk-navy">Itens do pedido</h3>
               </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#E2E8F0] bg-[#F8F9FC]">
-                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Produto</th>
-                    <th className="px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Qtd</th>
-                    <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Unit.</th>
-                    <th className="px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Desc. R$</th>
-                    <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Total</th>
-                    <th className="w-10 px-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {itens.map((item, i) => {
-                    const rowTotal = item.preco * item.qtd - (parseFloat(item.desconto) || 0)
-                    return (
-                      <tr key={item.prodId} className={`${i < itens.length - 1 ? 'border-b border-[#F1F5F9]' : ''}`}>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-synk-navy">{item.nome}</p>
-                          <p className="font-mono text-[11px] text-synk-indigo">{item.sku}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-1">
-                            <button type="button" onClick={() => updateQtd(item.prodId, -1)} className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9]">−</button>
-                            <span className="w-8 text-center font-mono text-[13px] font-semibold text-synk-navy">{item.qtd}</span>
-                            <button type="button" onClick={() => updateQtd(item.prodId, 1)} disabled={item.qtd >= item.maxQtd} className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-40">+</button>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono text-[13px] text-[#64748B]">{formatBRL(item.preco)}</td>
-                        <td className="px-4 py-3">
-                          <input
-                            type="number" min="0" step="0.01"
-                            placeholder="0,00"
-                            value={item.desconto}
-                            onChange={(e) => updateDesconto(item.prodId, e.target.value)}
-                            className="h-8 w-20 rounded border border-[#E2E8F0] px-2 text-right font-mono text-[12px] focus:border-synk-indigo focus:outline-none focus:ring-1 focus:ring-synk-indigo/20"
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono text-[13px] font-bold text-synk-navy">{formatBRL(rowTotal)}</td>
-                        <td className="px-2 py-3">
-                          <button type="button" onClick={() => removeItem(item.prodId)} className="flex size-7 items-center justify-center rounded border border-[#E2E8F0] text-[#94A3B8] transition-colors hover:border-synk-danger hover:bg-[#fee2e2] hover:text-synk-danger">
-                            <Trash2 className="size-3.5" strokeWidth={1.5} />
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[#E2E8F0] bg-[#F8F9FC]">
+                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Produto</th>
+                      <th className="px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Qtd</th>
+                      <th className="hidden px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Unit.</th>
+                      <th className="hidden px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Desc. R$</th>
+                      <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Total</th>
+                      <th className="w-10 px-2" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itens.map((item, i) => {
+                      const rowTotal = item.preco * item.qtd - (parseFloat(item.desconto) || 0)
+                      return (
+                        <tr key={item.prodId} className={`${i < itens.length - 1 ? 'border-b border-[#F1F5F9]' : ''}`}>
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-synk-navy">{item.nome}</p>
+                            <p className="font-mono text-[11px] text-synk-indigo">{item.sku}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-1">
+                              <button type="button" onClick={() => updateQtd(item.prodId, -1)} className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9]">−</button>
+                              <span className="w-8 text-center font-mono text-[13px] font-semibold text-synk-navy">{item.qtd}</span>
+                              <button type="button" onClick={() => updateQtd(item.prodId, 1)} disabled={item.qtd >= item.maxQtd} className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-40">+</button>
+                            </div>
+                          </td>
+                          <td className="hidden px-4 py-3 text-right font-mono text-[13px] text-[#64748B] sm:table-cell">{formatBRL(item.preco)}</td>
+                          <td className="hidden px-4 py-3 sm:table-cell">
+                            <input
+                              type="number" min="0" step="0.01"
+                              placeholder="0,00"
+                              value={item.desconto}
+                              onChange={(e) => updateDesconto(item.prodId, e.target.value)}
+                              className="h-8 w-20 rounded border border-[#E2E8F0] px-2 text-right font-mono text-[12px] focus:border-synk-indigo focus:outline-none focus:ring-1 focus:ring-synk-indigo/20"
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-right font-mono text-[13px] font-bold text-synk-navy">{formatBRL(rowTotal)}</td>
+                          <td className="px-2 py-3">
+                            <button type="button" onClick={() => removeItem(item.prodId)} className="flex size-7 items-center justify-center rounded border border-[#E2E8F0] text-[#94A3B8] transition-colors hover:border-synk-danger hover:bg-[#fee2e2] hover:text-synk-danger">
+                              <Trash2 className="size-3.5" strokeWidth={1.5} />
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </section>
           )}
 
           {/* Pagamento */}
           <section className="rounded-lg border border-[#E2E8F0] bg-white p-5">
             <h3 className="mb-3 text-[13px] font-semibold text-synk-navy">Pagamento</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-[13px] font-medium text-synk-navy">Forma de pagamento</label>
                 <select

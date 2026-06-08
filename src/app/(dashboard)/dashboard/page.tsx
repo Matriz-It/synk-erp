@@ -71,11 +71,11 @@ export default async function DashboardPage() {
     }))
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
       <DashboardHeader />
       <KpiCards stock={stats.stock} financeiro={financeiro} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <CashflowChart data={chartData} />
         </div>

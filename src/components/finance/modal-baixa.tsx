@@ -35,7 +35,7 @@ export function ModalBaixa({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={titulo} width="max-w-md">
-      <div className="space-y-4 p-6">
+      <div className="space-y-4 p-4 sm:p-6">
         {/* Conta info */}
         <div className="rounded-lg border border-[#E2E8F0] bg-[#F8F9FC] p-4">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[#94A3B8]">Conta</p>
@@ -48,7 +48,7 @@ export function ModalBaixa({
         </div>
 
         {/* Data e valor */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-[13px] font-medium text-synk-navy">Data da baixa</label>
             <input type="date" value={pagoEm} onChange={e => setPagoEm(e.target.value)}

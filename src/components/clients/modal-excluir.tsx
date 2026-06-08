@@ -33,7 +33,7 @@ export function ModalExcluirCliente({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title="Confirmar exclusão" width="max-w-md">
-      <div className="space-y-4 p-6">
+      <div className="space-y-4 p-4 sm:p-6">
         {/* Alert box */}
         <div className="flex gap-3.5 rounded-[10px] border border-[#ef444430] bg-[#FEE2E2] p-4">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[#ef4444]">

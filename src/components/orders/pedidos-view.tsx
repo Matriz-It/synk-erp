@@ -168,7 +168,7 @@ export function PedidosView({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -226,9 +226,15 @@ export function PedidosView({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#E2E8F0] bg-[#F8F9FC]">
-                  {[cfg.entityCapital, cfg.parceiroLabel ?? 'Cliente', 'Itens', 'Subtotal', 'Desconto', 'Total', 'Status', 'Data', ''].map((h, i) => (
-                    <th key={i} className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] ${[2, 3, 4, 5].includes(i) ? 'text-right' : i === 6 ? 'text-center' : 'text-left'}`}>{h}</th>
-                  ))}
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{cfg.entityCapital}</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{cfg.parceiroLabel ?? 'Cliente'}</th>
+                  <th className="hidden px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Itens</th>
+                  <th className="hidden px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Subtotal</th>
+                  <th className="hidden px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Desconto</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Total</th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Status</th>
+                  <th className="hidden px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Data</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -240,14 +246,14 @@ export function PedidosView({
                   >
                     <td className="px-4 py-3 font-mono text-[13px] font-semibold text-synk-indigo">#{p.numero}</td>
                     <td className="px-4 py-3 font-medium text-synk-navy">{p.cliente}</td>
-                    <td className="px-4 py-3 text-right text-[#64748B]">{p.itens}</td>
-                    <td className="px-4 py-3 text-right font-mono text-[13px] text-[#64748B]">{formatBRL(p.subtotal)}</td>
-                    <td className={`px-4 py-3 text-right font-mono text-[13px] ${p.desconto > 0 ? 'text-[#ef4444]' : 'text-[#94A3B8]'}`}>
+                    <td className="hidden px-4 py-3 text-right text-[#64748B] sm:table-cell">{p.itens}</td>
+                    <td className="hidden px-4 py-3 text-right font-mono text-[13px] text-[#64748B] sm:table-cell">{formatBRL(p.subtotal)}</td>
+                    <td className={`hidden px-4 py-3 text-right font-mono text-[13px] sm:table-cell ${p.desconto > 0 ? 'text-[#ef4444]' : 'text-[#94A3B8]'}`}>
                       {p.desconto > 0 ? `-${formatBRL(p.desconto)}` : '—'}
                     </td>
                     <td className="px-4 py-3 text-right font-mono text-[13px] font-bold text-synk-navy">{formatBRL(p.total)}</td>
                     <td className="px-4 py-3 text-center"><StatusBadge status={p.status} /></td>
-                    <td className="px-4 py-3 font-mono text-[12px] text-[#94A3B8]">{formatDate(p.criadoEm)}</td>
+                    <td className="hidden px-4 py-3 font-mono text-[12px] text-[#94A3B8] sm:table-cell">{formatDate(p.criadoEm)}</td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <button type="button" onClick={() => handleRowClick(p)} disabled={loadingEdit} className="flex items-center gap-1 text-[12px] font-medium text-synk-indigo hover:text-synk-indigo-hover disabled:opacity-50">
                         {loadingEdit && cfg.editableStatuses?.includes(p.status)

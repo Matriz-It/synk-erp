@@ -21,7 +21,7 @@ export function ModalClienteDetalhe({
 
   return (
     <ModalWrapper open={open} onClose={onClose} title={cliente.razaoSocial} width="max-w-xl">
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
         {/* Status row */}
         <div className="flex flex-wrap items-center gap-2">
           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[12px] font-bold ${isPJ ? 'bg-synk-indigo-light text-synk-indigo' : 'bg-[#d1fae5] text-[#14b87e]'}`}>

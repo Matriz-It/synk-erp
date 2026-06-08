@@ -43,11 +43,11 @@ export function CashflowChart({ data }: { data: WeekData[] }) {
 
       <div className="min-h-0 flex-1">
         {!hasData ? (
-          <div className="flex h-[260px] items-center justify-center text-[13px] text-[#94A3B8]">
+          <div className="flex h-[200px] sm:h-[260px] items-center justify-center text-[13px] text-[#94A3B8]">
             Nenhuma movimentação registrada neste mês
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
+          <ChartContainer config={chartConfig} className="h-[200px] sm:h-[260px] w-full">
             <BarChart data={data} barCategoryGap="22%">
               <CartesianGrid vertical={false} stroke="#E2E8F0" strokeDasharray="3 3" />
               <XAxis dataKey="week" tickLine={false} axisLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} />

@@ -92,7 +92,7 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
           <Icon className="size-4" strokeWidth={1.5} />
         </span>
       </div>
-      <p className="font-display text-[26px] font-bold leading-none tracking-tight text-synk-navy">{kpi.value}</p>
+      <p className="font-display text-[22px] font-bold leading-none tracking-tight text-synk-navy sm:text-[26px]">{kpi.value}</p>
       <div className="flex items-center justify-between gap-2">
         {isNeutral ? (
           <span className="inline-flex items-center gap-1 rounded-sm bg-[#F1F5F9] px-1.5 py-0.5 text-[11px] font-semibold text-[#64748B]">{kpi.delta}</span>

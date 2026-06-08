@@ -25,7 +25,7 @@ export async function DashboardHeader() {
       <div className="flex items-center gap-2">
         <Button variant="outline" className="h-10 gap-2 border-[#E2E8F0] bg-white text-[13px] font-medium text-synk-navy hover:bg-[#F1F5F9]">
           <Calendar className="size-4" strokeWidth={1.5} />
-          {monthCap} · {year}
+          <span className="hidden sm:inline">{monthCap} · {year}</span>
         </Button>
         <Button variant="outline" className="h-10 gap-2 border-[#E2E8F0] bg-white text-[13px] font-medium text-synk-navy hover:bg-[#F1F5F9]">
           <Download className="size-4" strokeWidth={1.5} />
@@ -33,7 +33,7 @@ export async function DashboardHeader() {
         </Button>
         <Button className="h-10 gap-2 bg-synk-indigo text-[13px] font-semibold hover:bg-synk-indigo-hover">
           <Plus className="size-4" strokeWidth={2} />
-          Novo pedido
+          <span className="hidden sm:inline">Novo pedido</span>
         </Button>
       </div>
     </div>
