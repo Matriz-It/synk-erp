@@ -48,6 +48,7 @@ interface OrderPayload {
   formaPagamento: string
   dataPagamento: string
   items: PedidoItem[]
+  pago?: boolean
 }
 
 function buildOrderBody(data: OrderPayload) {
@@ -58,6 +59,7 @@ function buildOrderBody(data: OrderPayload) {
     descontoGlobal: data.descontoGlobal || undefined,
     formaPagamento: data.formaPagamento || undefined,
     dataPagamento: data.dataPagamento || undefined,
+    pago: data.pago || undefined,
     items: data.items.map((i) => ({
       productId: i.prodId,
       qtd: i.qtd,

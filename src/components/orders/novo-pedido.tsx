@@ -79,6 +79,7 @@ export function NovoPedido({
   const [dataPagamento, setDataPagamento] = useState(
     initialOrder?.dataPagamento ?? new Date().toISOString().split('T')[0]
   )
+  const [pago, setPago] = useState(false)
   const [salvando, setSalvando] = useState(false)
 
   const clienteRef = useRef<HTMLDivElement>(null)
@@ -146,6 +147,7 @@ export function NovoPedido({
         formaPagamento,
         dataPagamento,
         items: itens,
+        pago: finalStatus === 'concluido' ? pago : undefined,
       })
     } finally {
       setSalvando(false)
@@ -408,6 +410,29 @@ export function NovoPedido({
                 />
               </div>
             </div>
+
+            {/* Checkbox: pagamento já recebido */}
+            <label className={`mt-4 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${pago ? 'border-[#14b87e] bg-[#f0fdf4]' : 'border-[#E2E8F0] bg-white hover:border-[#14b87e]/40'}`}>
+              <input
+                type="checkbox"
+                checked={pago}
+                onChange={(e) => setPago(e.target.checked)}
+                className="size-4 accent-[#14b87e]"
+              />
+              <div className="min-w-0">
+                <p className={`text-[13px] font-semibold ${pago ? 'text-[#14b87e]' : 'text-synk-navy'}`}>
+                  Pagamento já recebido
+                </p>
+                <p className="text-[11px] text-[#94A3B8]">
+                  A conta a receber será gerada com status <strong>Pago</strong> automaticamente
+                </p>
+              </div>
+              {pago && (
+                <span className="ml-auto shrink-0 rounded-full bg-[#14b87e] px-2 py-0.5 text-[10px] font-bold text-white">
+                  PAGO
+                </span>
+              )}
+            </label>
           </section>
 
           {/* Obs */}

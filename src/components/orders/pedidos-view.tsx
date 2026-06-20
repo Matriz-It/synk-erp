@@ -18,6 +18,7 @@ export interface OrderSavePayload {
   formaPagamento: string
   dataPagamento: string
   items: PedidoItem[]
+  pago?: boolean
 }
 
 export interface OrderViewActions {
