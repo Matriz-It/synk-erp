@@ -13,6 +13,7 @@ import {
   type PedidoItem, type StatusPedido,
   STATUS_CFG, formatBRL,
 } from './types'
+import { maskBRL, parseBRL, formatCurrencyDisplay } from '@/components/ui/currency-input'
 import type { OrderViewConfig } from './pedidos-view'
 import type { OrderDetail } from '@/app/actions/orders'
 import { StatusBadge } from './status-badge'
@@ -64,13 +65,13 @@ export function NovoPedido({
           sku: i.sku,
           preco: i.preco,
           qtd: i.qtd,
-          desconto: i.desconto > 0 ? String(i.desconto) : '',
+          desconto: i.desconto > 0 ? formatCurrencyDisplay(i.desconto) : '',
           maxQtd: produtos.find((p) => p.id === i.productId)?.qtd ?? i.qtd,
         }))
       : []
   )
   const [descontoGlobal, setDescontoGlobal] = useState(
-    initialOrder?.descontoGlobal ? String(initialOrder.descontoGlobal) : ''
+    initialOrder?.descontoGlobal ? formatCurrencyDisplay(initialOrder.descontoGlobal) : ''
   )
   const [obs, setObs] = useState(initialOrder?.obs ?? '')
   const [formaPagamento, setFormaPagamento] = useState(initialOrder?.formaPagamento ?? '')
@@ -115,7 +116,7 @@ export function NovoPedido({
   }
 
   function updateDesconto(prodId: string, val: string) {
-    setItens((prev) => prev.map((i) => i.prodId === prodId ? { ...i, desconto: val } : i))
+    setItens((prev) => prev.map((i) => i.prodId === prodId ? { ...i, desconto: maskBRL(val) } : i))
   }
 
   function removeItem(prodId: string) {
@@ -126,10 +127,10 @@ export function NovoPedido({
   const isEditingPendentePedido = isEditingExisting && initialOrder?.status === 'pendente' && cfg.showNFe
   const isEditingQuote = isEditingExisting && !cfg.showNFe
 
-  const subtotalItens = itens.reduce((acc, i) => acc + i.preco * i.qtd - (parseFloat(i.desconto) || 0), 0)
-  const descGlobal = parseFloat(descontoGlobal) || 0
+  const subtotalItens = itens.reduce((acc, i) => acc + i.preco * i.qtd - parseBRL(i.desconto), 0)
+  const descGlobal = parseBRL(descontoGlobal)
   const total = Math.max(0, subtotalItens - descGlobal)
-  const descontosItem = itens.reduce((acc, i) => acc + (parseFloat(i.desconto) || 0), 0)
+  const descontosItem = itens.reduce((acc, i) => acc + parseBRL(i.desconto), 0)
   const canConfirm = !!clienteSel && itens.length > 0
 
   async function salvar(finalStatus: StatusPedido) {
@@ -357,7 +358,7 @@ export function NovoPedido({
                           <td className="hidden px-4 py-3 text-right font-mono text-[13px] text-[#64748B] sm:table-cell">{formatBRL(item.preco)}</td>
                           <td className="hidden px-4 py-3 sm:table-cell">
                             <input
-                              type="number" min="0" step="0.01"
+                              inputMode="numeric"
                               placeholder="0,00"
                               value={item.desconto}
                               onChange={(e) => updateDesconto(item.prodId, e.target.value)}
@@ -455,9 +456,10 @@ export function NovoPedido({
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">Desconto geral</span>
                 <input
-                  type="number" min="0" step="0.01" placeholder="0,00"
+                  inputMode="numeric"
+                  placeholder="0,00"
                   value={descontoGlobal}
-                  onChange={(e) => setDescontoGlobal(e.target.value)}
+                  onChange={(e) => setDescontoGlobal(maskBRL(e.target.value))}
                   className="h-7 w-24 rounded border border-[#E2E8F0] px-2 text-right font-mono text-[12px] focus:border-synk-indigo focus:outline-none"
                 />
               </div>

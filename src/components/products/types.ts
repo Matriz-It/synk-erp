@@ -21,6 +21,12 @@ export interface Movimentacao {
   saldoApos: number
 }
 
+export interface MovimentacaoGlobal extends Movimentacao {
+  produto: string
+  sku: string
+  productId: string
+}
+
 export type MovMap = Record<string, Movimentacao[]>
 
 export const CATEGORIAS = [

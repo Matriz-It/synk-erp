@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { apiGet, apiPatch, apiPost, ApiError } from '@/lib/api'
-import type { Produto, Movimentacao } from '@/components/products/types'
+import type { Produto, Movimentacao, MovimentacaoGlobal } from '@/components/products/types'
 
 interface ProductDetail extends Produto {
   movimentacoes: Movimentacao[]
@@ -64,6 +64,20 @@ export async function createMovementAction(
 ): Promise<Movimentacao> {
   try {
     return await apiPost<Movimentacao>(`/products/${productId}/movements`, dto)
+  } catch (err) {
+    return handleAuthError(err)
+  }
+}
+
+export async function listAllMovementsAction(params: {
+  tipo?: 'entrada' | 'saida'
+  productId?: string
+} = {}): Promise<MovimentacaoGlobal[]> {
+  try {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined)) as Record<string, string>
+    ).toString()
+    return await apiGet<MovimentacaoGlobal[]>(`/products/movements${qs ? '?' + qs : ''}`)
   } catch (err) {
     return handleAuthError(err)
   }

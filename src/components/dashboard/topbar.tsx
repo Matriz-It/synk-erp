@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { Bell, ChevronRight, Menu, Search } from "lucide-react"
+import { Bell, ChevronRight, Menu, Search, UserCircle } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -169,9 +169,12 @@ export function Topbar({ onMenuClick, me, notifications }: TopbarProps) {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="text-xs text-[#94A3B8]">{me?.user.email ?? ''}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Meu perfil</DropdownMenuItem>
-          <DropdownMenuItem>Minha empresa</DropdownMenuItem>
-          <DropdownMenuItem>Plano atual</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/perfil" className="flex cursor-pointer items-center gap-2">
+              <UserCircle className="size-4" strokeWidth={1.5} />
+              Meu perfil
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={async () => { await logoutAction(); window.location.replace('/login') }}
@@ -192,10 +195,13 @@ function buildBreadcrumbs(pathname: string): Crumb[] {
   const segments = pathname.split("/").filter(Boolean)
   if (segments[0] !== "dashboard") return crumbs
 
-  const allLinks = NAVIGATION.flatMap((item) => [
-    { label: item.label, href: item.href },
-    ...(item.children?.map((c) => ({ label: c.label, href: c.href })) ?? []),
-  ])
+  const allLinks = [
+    ...NAVIGATION.flatMap((item) => [
+      { label: item.label, href: item.href },
+      ...(item.children?.map((c) => ({ label: c.label, href: c.href })) ?? []),
+    ]),
+    { label: 'Meu Perfil', href: '/dashboard/perfil' },
+  ]
 
   let current = ""
   segments.forEach((seg, idx) => {

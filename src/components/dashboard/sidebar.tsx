@@ -26,7 +26,13 @@ function formatCNPJ(raw: string | null): string {
   return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12, 14)}`
 }
 
-const ROLE_LABEL: Record<string, string> = { admin: 'Administrador', user: 'Usuário' }
+const ROLE_LABEL: Record<string, string> = {
+  proprietario: 'Proprietário',
+  admin: 'Administrador',
+  financeiro: 'Financeiro',
+  vendedor: 'Vendedor',
+  user: 'Usuário',
+}
 const PLAN_LABEL: Record<string, string> = { free: 'Plano Free', pro: 'Plano Pro', enterprise: 'Enterprise' }
 
 export function Sidebar({ collapsed, onToggleCollapse, me }: SidebarProps) {
@@ -41,7 +47,9 @@ export function Sidebar({ collapsed, onToggleCollapse, me }: SidebarProps) {
       <SidebarHeader collapsed={collapsed} me={me} />
       <nav className="flex-1 px-2 py-3">
         <ul className="flex flex-col gap-0.5">
-          {NAVIGATION.map((item) => <SidebarItem key={item.href} item={item} collapsed={collapsed} />)}
+          {NAVIGATION
+            .filter((item) => !item.allowedRoles || item.allowedRoles.includes(me?.user.role ?? ''))
+            .map((item) => <SidebarItem key={item.href} item={item} collapsed={collapsed} />)}
         </ul>
       </nav>
       <SidebarFooter collapsed={collapsed} onToggleCollapse={onToggleCollapse} me={me} />

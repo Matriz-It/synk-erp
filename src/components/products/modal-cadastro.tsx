@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { AlertCircle, Loader2, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,7 +14,7 @@ interface FormState {
   nome: string
   sku: string
   categoria: string
-  preco: string
+  preco: number
   qtdInicial: string
   ativo: boolean
 }
@@ -31,8 +32,7 @@ function validate(form: FormState, existingSkus: string[], isEditing: boolean, e
   } else if (isEditing && sku !== editSku && existingSkus.includes(sku)) {
     e.sku = 'SKU já cadastrado'
   }
-  const preco = parseFloat(form.preco.replace(',', '.'))
-  if (!form.preco.trim() || isNaN(preco) || preco <= 0) e.preco = 'Informe um preço válido'
+  if (form.preco <= 0) e.preco = 'Informe um preço válido'
   if (!isEditing && form.qtdInicial.trim()) {
     const qtd = parseInt(form.qtdInicial)
     if (isNaN(qtd) || qtd < 0) e.qtdInicial = 'Quantidade inválida'
@@ -56,7 +56,7 @@ export function ModalCadastro({
   const isEditing = !!produtoEdicao
 
   const [form, setForm] = useState<FormState>({
-    nome: '', sku: '', categoria: 'alimentos', preco: '', qtdInicial: '', ativo: true,
+    nome: '', sku: '', categoria: 'alimentos', preco: 0, qtdInicial: '', ativo: true,
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
@@ -68,12 +68,12 @@ export function ModalCadastro({
         nome: produtoEdicao.nome,
         sku: produtoEdicao.sku,
         categoria: produtoEdicao.categoria,
-        preco: produtoEdicao.preco.toFixed(2).replace('.', ','),
+        preco: produtoEdicao.preco,
         qtdInicial: '',
         ativo: produtoEdicao.ativo,
       })
     } else {
-      setForm({ nome: '', sku: '', categoria: 'alimentos', preco: '', qtdInicial: '', ativo: true })
+      setForm({ nome: '', sku: '', categoria: 'alimentos', preco: 0, qtdInicial: '', ativo: true })
     }
     setErrors({})
   }, [open, produtoEdicao])
@@ -94,7 +94,7 @@ export function ModalCadastro({
         sku: form.sku.toUpperCase().trim(),
         nome: form.nome.trim(),
         categoria: form.categoria,
-        preco: parseFloat(form.preco.replace(',', '.')),
+        preco: form.preco,
         qtd: isEditing ? (produtoEdicao?.qtd ?? 0) : (parseInt(form.qtdInicial) || 0),
         qtdMin: produtoEdicao?.qtdMin ?? 10,
         ativo: form.ativo,
@@ -152,16 +152,11 @@ export function ModalCadastro({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Preço de venda" error={errors.preco} required>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#94A3B8]">R$</span>
-              <Input
-                placeholder="0,00"
-                value={form.preco}
-                onChange={(e) => set('preco', e.target.value)}
-                className={`pl-9 font-mono ${errors.preco ? 'border-synk-danger focus-visible:ring-synk-danger/40' : ''}`}
-                inputMode="decimal"
-              />
-            </div>
+            <CurrencyInput
+              value={form.preco}
+              onChange={(v) => set('preco', v)}
+              error={!!errors.preco}
+            />
           </Field>
           {!isEditing && (
             <Field label="Qtd. inicial" error={errors.qtdInicial}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { maskBRL } from '@/components/ui/currency-input'
 import type { Cliente } from '@/components/clients/types'
 import type { Produto } from '@/components/products/types'
 import { listNfesAction, createNfeAction, type Nfe, type NFeStatus } from '@/app/actions/nfes'
@@ -79,7 +80,7 @@ const ABAS = [
 
 // ─── Helpers ──────────────────────────────────────────────────────
 const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(v)
-const num = (v: string | number) => { const n = parseFloat(String(v).replace(',','.')); return isNaN(n) ? 0 : n }
+const num = (v: string | number) => { const s = String(v).replace(/\./g, '').replace(',', '.'); const n = parseFloat(s); return isNaN(n) ? 0 : n }
 const today = () => new Date().toISOString().slice(0,10)
 const in30d = () => new Date(Date.now() + 30 * 864e5).toISOString().slice(0,10)
 const padNum = (n: number) => String(n).padStart(6, '0')
@@ -801,10 +802,10 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
                                 <input value={item.qtd} onChange={e => updItem(item.id,'qtd',e.target.value)} inputMode="decimal" style={{ ...inpStyle, textAlign:'center', width:56 }} />
                               </td>
                               <td style={{ padding:'6px 4px' }}>
-                                <input value={item.preco} onChange={e => updItem(item.id,'preco',e.target.value)} inputMode="decimal" style={{ ...inpStyle, textAlign:'right', width:88 }} />
+                                <input value={item.preco} onChange={e => updItem(item.id,'preco',maskBRL(e.target.value))} inputMode="numeric" style={{ ...inpStyle, textAlign:'right', width:88 }} />
                               </td>
                               <td style={{ padding:'6px 4px' }}>
-                                <input value={item.desconto} onChange={e => updItem(item.id,'desconto',e.target.value)} inputMode="decimal" style={{ ...inpStyle, textAlign:'right', width:72 }} />
+                                <input value={item.desconto} onChange={e => updItem(item.id,'desconto',maskBRL(e.target.value))} inputMode="numeric" style={{ ...inpStyle, textAlign:'right', width:72 }} />
                               </td>
                               <td style={{ padding:'6px 4px' }}>
                                 <input value={item.cfop} onChange={e => updItem(item.id,'cfop',e.target.value)} style={{ ...inpStyle, textAlign:'center', width:56 }} />
@@ -813,7 +814,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
                                 <input value={item.cst} onChange={e => updItem(item.id,'cst',e.target.value)} style={{ ...inpStyle, textAlign:'center', width:48 }} />
                               </td>
                               <td style={{ padding:'6px 4px' }}>
-                                <input value={item.bcICMS} onChange={e => updItem(item.id,'bcICMS',e.target.value)} inputMode="decimal" style={{ ...inpStyle, textAlign:'right', width:88 }} />
+                                <input value={item.bcICMS} onChange={e => updItem(item.id,'bcICMS',maskBRL(e.target.value))} inputMode="numeric" style={{ ...inpStyle, textAlign:'right', width:88 }} />
                               </td>
                               <td style={{ padding:'6px 4px' }}>
                                 <input value={item.aliqICMS} onChange={e => updItem(item.id,'aliqICMS',e.target.value)} inputMode="decimal" style={{ ...inpStyle, textAlign:'center', width:56 }} />
@@ -965,7 +966,7 @@ function NovaNFePage({ onVoltar }: { onVoltar: () => void }) {
                               style={{ width:'100%', height:34, borderRadius:5, border:`1px solid ${T.gray200}`, padding:'0 8px', fontSize:12, fontFamily:'JetBrains Mono, monospace', outline:'none' }} />
                           </td>
                           <td style={{ padding:'8px 12px' }}>
-                            <input value={v.valor} onChange={e => updVenc(v.id,'valor',e.target.value)} inputMode="decimal" placeholder="0,00"
+                            <input value={v.valor} onChange={e => updVenc(v.id,'valor',maskBRL(e.target.value))} inputMode="numeric" placeholder="0,00"
                               style={{ width:'100%', height:34, borderRadius:5, border:`1px solid ${T.gray200}`, padding:'0 8px', fontSize:12, fontFamily:'JetBrains Mono, monospace', textAlign:'right', outline:'none' }} />
                           </td>
                           <td style={{ padding:'8px 12px' }}>

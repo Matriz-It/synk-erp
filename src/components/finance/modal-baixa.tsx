@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { ModalWrapper } from '@/components/products/modal-wrapper'
 import { type Conta, formatBRL, formatDate } from './types'
 
@@ -16,12 +17,12 @@ export function ModalBaixa({
   titulo: string
 }) {
   const [pagoEm, setPagoEm] = useState(new Date().toISOString().split('T')[0])
-  const [valorPago, setValorPago] = useState('')
+  const [valorPago, setValorPago] = useState(0)
   const [saving, setSaving] = useState(false)
 
   if (!conta) return null
 
-  const valorFinal = parseFloat(valorPago.replace(',', '.')) || conta.valor
+  const valorFinal = valorPago || conta.valor
 
   async function handleConfirm() {
     setSaving(true)
@@ -56,16 +57,7 @@ export function ModalBaixa({
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] font-medium text-synk-navy">Valor pago</label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#94A3B8]">R$</span>
-              <input
-                placeholder={conta.valor.toFixed(2).replace('.', ',')}
-                value={valorPago}
-                onChange={e => setValorPago(e.target.value)}
-                inputMode="decimal"
-                className="h-10 w-full rounded-md border border-[#E2E8F0] bg-white pl-9 pr-3 font-mono text-sm text-synk-navy focus:border-synk-indigo focus:outline-none focus:ring-2 focus:ring-synk-indigo/20"
-              />
-            </div>
+            <CurrencyInput value={valorPago} onChange={setValorPago} />
             <p className="text-[11px] text-[#94A3B8]">Padrão: {formatBRL(conta.valor)}</p>
           </div>
         </div>

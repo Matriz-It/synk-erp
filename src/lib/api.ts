@@ -79,3 +79,20 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   })
   return handleResponse<T>(res)
 }
+
+export async function apiPatchVoid(path: string, body: unknown): Promise<void> {
+  const auth = await authHeader()
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...auth },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  })
+  if (!res.ok) {
+    const payload = await res.json().catch(() => ({}))
+    const message = Array.isArray(payload.message)
+      ? payload.message[0]
+      : (payload.message ?? 'Erro na requisição')
+    throw new ApiError(res.status, message)
+  }
+}

@@ -5,7 +5,7 @@ import { apiGet, apiPost, ApiError } from '@/lib/api'
 import { createSession, deleteSession } from '@/lib/session'
 
 export interface MeData {
-  user: { name: string; email: string; role: string }
+  user: { id: string; name: string; email: string; role: string }
   tenant: { name: string; document: string | null; plan: string }
 }
 

@@ -61,7 +61,7 @@ function buildOrderBody(data: OrderPayload) {
     items: data.items.map((i) => ({
       productId: i.prodId,
       qtd: i.qtd,
-      desconto: parseFloat(i.desconto) || undefined,
+      desconto: i.desconto ? (parseFloat(i.desconto.replace(/\./g, '').replace(',', '.')) || undefined) : undefined,
     })),
   }
 }

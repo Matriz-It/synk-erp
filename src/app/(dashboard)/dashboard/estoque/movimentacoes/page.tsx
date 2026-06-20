@@ -1,6 +1,11 @@
-import { Package } from "lucide-react"
-import { ComingSoon } from "@/components/dashboard/coming-soon"
+import { listAllMovementsAction } from '@/app/actions/products'
+import { listProductsAction } from '@/app/actions/products'
+import { MovimentacoesView } from '@/components/products/movimentacoes-view'
 
-export default function MovimentacoesPage() {
-  return <ComingSoon label="Movimentações" icon={Package} />
+export default async function MovimentacoesPage() {
+  const [movimentacoes, produtos] = await Promise.all([
+    listAllMovementsAction().catch(() => []),
+    listProductsAction().catch(() => []),
+  ])
+  return <MovimentacoesView initialMovimentacoes={movimentacoes} produtos={produtos} />
 }

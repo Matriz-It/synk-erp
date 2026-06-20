@@ -96,6 +96,7 @@ function findCat(tipo: string, catId: string, subId: string) {
 }
 
 function fmtBRL(v: number) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0) }
+function fmtDate(iso: string | null | undefined) { if (!iso) return '—'; const p = iso.split('T')[0].split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso }
 
 function gerarMockLancamentos(tipo: string): Lancamento[] {
   const hoje = new Date(HOJE)
@@ -258,7 +259,7 @@ function ModalBaixa({ tipo, lanc, onClose, onConfirm }: { tipo: string; lanc: La
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: T.gray400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Vencimento</p>
-                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: dias > 0 ? T.danger : T.navy }}>{lanc.vencimento}</p>
+                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: dias > 0 ? T.danger : T.navy }}>{fmtDate(lanc.vencimento)}</p>
                 {dias > 0 && <p style={{ fontSize: 11, color: T.danger, fontWeight: 500, marginTop: 1 }}>{dias} dias em atraso</p>}
               </div>
             </div>
@@ -419,7 +420,7 @@ function ModalNovoLanc({ tipo, onClose, onCreate }: { tipo: string; onClose: () 
                   {previewParcelas.map(p => (
                     <tr key={p.num} style={{ borderTop: `1px solid ${T.gray100}` }}>
                       <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: T.gray500 }}>{p.num}/{qtd}</td>
-                      <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: T.navy }}>{p.data}</td>
+                      <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: T.navy }}>{fmtDate(p.data)}</td>
                       <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: T.navy, textAlign: 'right' }}>{fmtBRL(p.valor)}</td>
                     </tr>
                   ))}
@@ -538,7 +539,7 @@ export function FinanceiroView({ tipo }: { tipo: 'pagar' | 'receber' }) {
           )}
         </td>
         <td style={{ padding: '11px 12px' }}>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: T.navy }}>{l.vencimento}</p>
+          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: T.navy }}>{fmtDate(l.vencimento)}</p>
           {!baixado && <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600, background: sv.bg, color: sv.color, marginTop: 2 }}>{sv.label}</span>}
         </td>
         <td style={{ padding: '11px 12px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: T.navy }}>{fmtBRL(l.valor)}</td>

@@ -19,6 +19,7 @@ export interface NavItem {
   label: string
   href: string
   icon: LucideIcon
+  allowedRoles?: string[]
   children?: NavSubItem[]
 }
 
@@ -28,6 +29,7 @@ export const NAVIGATION: NavItem[] = [
     label: "Financeiro",
     href: "/dashboard/financeiro",
     icon: Wallet,
+    allowedRoles: ["proprietario", "admin", "financeiro"],
     children: [
       { label: "Contas a Pagar", href: "/dashboard/financeiro/pagar" },
       { label: "Contas a Receber", href: "/dashboard/financeiro/receber" },
@@ -39,6 +41,7 @@ export const NAVIGATION: NavItem[] = [
     label: "Vendas",
     href: "/dashboard/vendas",
     icon: ShoppingCart,
+    allowedRoles: ["proprietario", "admin", "vendedor"],
     children: [
       { label: "Pedidos", href: "/dashboard/vendas/pedidos" },
       { label: "Orçamentos", href: "/dashboard/vendas/orcamentos" },
@@ -50,6 +53,7 @@ export const NAVIGATION: NavItem[] = [
     label: "Estoque",
     href: "/dashboard/estoque",
     icon: Package,
+    allowedRoles: ["proprietario", "admin", "vendedor"],
     children: [
       { label: "Produtos", href: "/dashboard/estoque/produtos" },
       { label: "Movimentações", href: "/dashboard/estoque/movimentacoes" },
@@ -60,11 +64,20 @@ export const NAVIGATION: NavItem[] = [
     label: "Compras",
     href: "/dashboard/compras",
     icon: Factory,
+    allowedRoles: ["proprietario", "admin", "vendedor"],
     children: [
       { label: "Pedidos de Compra", href: "/dashboard/compras/pedidos" },
       { label: "Fornecedores", href: "/dashboard/compras/fornecedores" },
     ],
   },
   { label: "Relatórios", href: "/dashboard/relatorios", icon: BarChart3 },
-  { label: "Configurações", href: "/dashboard/configuracoes", icon: Settings },
+  {
+    label: "Configurações",
+    href: "/dashboard/configuracoes",
+    icon: Settings,
+    allowedRoles: ["proprietario", "admin"],
+    children: [
+      { label: "Equipe", href: "/dashboard/configuracoes/equipe" },
+    ],
+  },
 ]

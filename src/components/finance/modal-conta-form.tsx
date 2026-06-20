@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { AlertCircle, Check, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ModalWrapper } from '@/components/products/modal-wrapper'
@@ -11,7 +12,7 @@ import { type Conta, formatBRL } from './types'
 interface ContaForm {
   parceiro: string
   descricao: string
-  valor: string
+  valor: number
   vencimento: string
   categoria: string
   obs: string
@@ -23,8 +24,7 @@ function validate(f: ContaForm): FormErrors {
   const e: FormErrors = {}
   if (!f.parceiro.trim()) e.parceiro = 'Informe o nome'
   if (!f.descricao.trim()) e.descricao = 'Informe a descrição'
-  const v = parseFloat(f.valor.replace(',', '.'))
-  if (!f.valor.trim() || isNaN(v) || v <= 0) e.valor = 'Informe um valor válido'
+  if (f.valor <= 0) e.valor = 'Informe um valor válido'
   if (!f.vencimento) e.vencimento = 'Informe o vencimento'
   return e
 }
@@ -41,7 +41,7 @@ export function ModalContaForm({
 }) {
   const isEditing = !!conta
   const [form, setForm] = useState<ContaForm>({
-    parceiro: '', descricao: '', valor: '', vencimento: '', categoria: categorias[0]?.value ?? '', obs: '',
+    parceiro: '', descricao: '', valor: 0, vencimento: '', categoria: categorias[0]?.value ?? '', obs: '',
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
@@ -52,13 +52,13 @@ export function ModalContaForm({
       setForm({
         parceiro: conta.parceiro,
         descricao: conta.descricao,
-        valor: conta.valor.toFixed(2).replace('.', ','),
+        valor: conta.valor,
         vencimento: conta.vencimento,
         categoria: conta.categoria,
         obs: conta.obs,
       })
     } else {
-      setForm({ parceiro: '', descricao: '', valor: '', vencimento: new Date().toISOString().split('T')[0], categoria: categorias[0]?.value ?? '', obs: '' })
+      setForm({ parceiro: '', descricao: '', valor: 0, vencimento: new Date().toISOString().split('T')[0], categoria: categorias[0]?.value ?? '', obs: '' })
     }
     setErrors({})
   }, [open, conta, categorias])
@@ -77,7 +77,7 @@ export function ModalContaForm({
       await onSave({
         parceiro: form.parceiro.trim(),
         descricao: form.descricao.trim(),
-        valor: parseFloat(form.valor.replace(',', '.')),
+        valor: form.valor,
         vencimento: form.vencimento,
         categoria: form.categoria,
         obs: form.obs.trim(),
@@ -99,10 +99,11 @@ export function ModalContaForm({
         </F>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <F label="Valor *" error={errors.valor}>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#94A3B8]">R$</span>
-              <Input placeholder="0,00" value={form.valor} onChange={e => set('valor', e.target.value)} inputMode="decimal" className={`pl-9 font-mono ${err(errors.valor)}`} />
-            </div>
+            <CurrencyInput
+              value={form.valor}
+              onChange={(v) => set('valor', v)}
+              error={!!errors.valor}
+            />
           </F>
           <F label="Vencimento *" error={errors.vencimento}>
             <input type="date" value={form.vencimento} onChange={e => set('vencimento', e.target.value)}
