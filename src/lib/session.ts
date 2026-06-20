@@ -10,7 +10,7 @@ export async function createSession(accessToken: string, refreshToken: string) {
   store.set(ACCESS_COOKIE, accessToken, {
     httpOnly: true,
     secure: isProd,
-    expires: new Date(Date.now() + 15 * 60 * 1000),
+    expires: new Date(Date.now() + 60 * 60 * 1000),
     sameSite: 'lax',
     path: '/',
   })

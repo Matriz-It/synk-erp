@@ -61,6 +61,12 @@ export async function registerAction(payload: {
 }
 
 export async function logoutAction() {
+  try {
+    // Invalida o refresh token no banco antes de apagar os cookies
+    await apiPost('/auth/logout', {})
+  } catch {
+    // Ignora erros — apaga os cookies de qualquer forma
+  }
   await deleteSession()
   // redirect é feito no cliente após o await (redirect() não funciona em onClick handlers)
 }
