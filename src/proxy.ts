@@ -7,11 +7,6 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const accessToken = req.cookies.get('synk_access')?.value
 
-  // Redireciona a raiz para login (ou dashboard se já autenticado)
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL(accessToken ? '/dashboard' : '/login', req.nextUrl))
-  }
-
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
   const isAuthRoute = authRoutes.includes(pathname)
 
