@@ -5,6 +5,7 @@ import {
   createPurchaseOrderAction,
   updatePurchaseOrderAction,
   getPurchaseOrderAction,
+  receivePurchaseOrderAction,
 } from "@/app/actions/purchase-orders"
 import { PedidosView } from "@/components/orders/pedidos-view"
 
@@ -18,12 +19,14 @@ const PEDIDO_COMPRA_CONFIG = {
   parceiroLabel: 'Fornecedor',
   allowedStatuses: ['rascunho', 'pendente', 'aprovado', 'recebido', 'cancelado'] as const,
   editableStatuses: ['rascunho', 'pendente'] as const,
+  enforceStockLimit: false,
 }
 
 const PEDIDO_COMPRA_ACTIONS = {
   create:     createPurchaseOrderAction,
   updateFull: updatePurchaseOrderAction,
   getDetail:  getPurchaseOrderAction,
+  receive:    receivePurchaseOrderAction,
 }
 
 export default async function PedidosCompraPage() {

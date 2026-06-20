@@ -61,3 +61,8 @@ export async function deletePurchaseOrderAction(id: string): Promise<void> {
   try { await apiDelete(`/purchase-orders/${id}`) }
   catch (err) { handleAuth(err) }
 }
+
+export async function receivePurchaseOrderAction(id: string): Promise<Pedido> {
+  try { return await apiPost<Pedido>(`/purchase-orders/${id}/receive`, {}) }
+  catch (err) { return handleAuth(err) }
+}

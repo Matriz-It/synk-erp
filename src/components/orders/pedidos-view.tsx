@@ -25,6 +25,7 @@ export interface OrderViewActions {
   updateFull: (id: string, data: OrderSavePayload) => Promise<Pedido>
   getDetail: (id: string) => Promise<OrderDetail>
   convertToOrder?: (id: string) => Promise<Pedido>
+  receive?: (id: string) => Promise<Pedido>
 }
 
 const DEFAULT_ACTIONS: OrderViewActions = {
@@ -46,10 +47,12 @@ export interface OrderViewConfig {
   entityCapital: string
   novoLabel: string
   confirmarLabel: string
-  allowedStatuses?: readonly StatusPedido[]   // undefined = todos
-  editableStatuses?: readonly StatusPedido[]  // status que abrem o form de edição ao clicar na linha
-  showNFe?: boolean                           // true = botão Gerar NF-e para pedido pendente
-  parceiroLabel?: string                      // 'Cliente' (padrão) ou 'Fornecedor'
+  allowedStatuses?: readonly StatusPedido[]
+  editableStatuses?: readonly StatusPedido[]
+  showNFe?: boolean
+  parceiroLabel?: string
+  /** false = pedidos de compra — sem limite de estoque e mostra produtos zerados */
+  enforceStockLimit?: boolean
 }
 
 const DEFAULT_CONFIG: OrderViewConfig = {
@@ -92,6 +95,7 @@ export function PedidosView({
   const [pedidoDetalhe, setPedidoDetalhe] = useState<Pedido | null>(null)
   const [editingOrder, setEditingOrder] = useState<OrderDetail | null>(null)
   const [loadingEdit, setLoadingEdit] = useState(false)
+  const [receivingId, setReceivingId] = useState<string | null>(null)
 
   const filtrados = useMemo(() => {
     const q = search.toLowerCase()
@@ -132,6 +136,20 @@ export function PedidosView({
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao salvar')
       throw err
+    }
+  }
+
+  async function handleReceive(p: Pedido) {
+    if (!act.receive) return
+    setReceivingId(p.id)
+    try {
+      const updated = await act.receive(p.id)
+      setPedidos((ps) => ps.map((x) => x.id === updated.id ? updated : x))
+      toast.success(`Pedido #${p.numero} recebido — estoque atualizado!`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao receber pedido')
+    } finally {
+      setReceivingId(null)
     }
   }
 
@@ -255,11 +273,25 @@ export function PedidosView({
                     <td className="px-4 py-3 text-center"><StatusBadge status={p.status} /></td>
                     <td className="hidden px-4 py-3 font-mono text-[12px] text-[#94A3B8] sm:table-cell">{formatDate(p.criadoEm)}</td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button type="button" onClick={() => handleRowClick(p)} disabled={loadingEdit} className="flex items-center gap-1 text-[12px] font-medium text-synk-indigo hover:text-synk-indigo-hover disabled:opacity-50">
-                        {loadingEdit && cfg.editableStatuses?.includes(p.status)
-                          ? <Loader2 className="size-3 animate-spin" />
-                          : <><span>Ver</span><ArrowRight className="size-3" strokeWidth={1.5} /></>}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {act.receive && p.status === 'aprovado' && (
+                          <button
+                            type="button"
+                            onClick={() => handleReceive(p)}
+                            disabled={receivingId === p.id}
+                            className="flex items-center gap-1 rounded-md border border-[#d1fae5] bg-[#d1fae5] px-2.5 py-1 text-[12px] font-semibold text-[#14b87e] transition-colors hover:bg-[#bbf7d0] disabled:opacity-50"
+                          >
+                            {receivingId === p.id
+                              ? <Loader2 className="size-3 animate-spin" />
+                              : 'Recebido'}
+                          </button>
+                        )}
+                        <button type="button" onClick={() => handleRowClick(p)} disabled={loadingEdit} className="flex items-center gap-1 text-[12px] font-medium text-synk-indigo hover:text-synk-indigo-hover disabled:opacity-50">
+                          {loadingEdit && cfg.editableStatuses?.includes(p.status)
+                            ? <Loader2 className="size-3 animate-spin" />
+                            : <><span>Ver</span><ArrowRight className="size-3" strokeWidth={1.5} /></>}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

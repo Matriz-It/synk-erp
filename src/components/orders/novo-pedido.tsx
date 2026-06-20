@@ -50,6 +50,7 @@ export function NovoPedido({
   parceiroLabel?: string
 }) {
   const parceiroLbl = parceiroLabel ?? cfg.parceiroLabel ?? 'Cliente'
+  const limitarEstoque = cfg.enforceStockLimit !== false  // false apenas em pedidos de compra
   const [status, setStatus] = useState<StatusPedido>(initialOrder?.status ?? 'rascunho')
   const [clienteSel, setClienteSel] = useState<Cliente | null>(() =>
     initialOrder ? (clientes.find((c) => c.id === initialOrder.clienteId) ?? null) : null
@@ -66,7 +67,7 @@ export function NovoPedido({
           preco: i.preco,
           qtd: i.qtd,
           desconto: i.desconto > 0 ? formatCurrencyDisplay(i.desconto) : '',
-          maxQtd: produtos.find((p) => p.id === i.productId)?.qtd ?? i.qtd,
+          maxQtd: limitarEstoque ? (produtos.find((p) => p.id === i.productId)?.qtd ?? i.qtd) : 99999,
         }))
       : []
   )
@@ -96,13 +97,13 @@ export function NovoPedido({
   ).slice(0, 6)
 
   const prodsFiltrados = produtos.filter(
-    (p) => p.ativo && p.qtd > 0 && (!buscaProd || p.nome.toLowerCase().includes(buscaProd.toLowerCase()) || p.sku.toLowerCase().includes(buscaProd.toLowerCase()))
+    (p) => p.ativo && (!limitarEstoque || p.qtd > 0) && (!buscaProd || p.nome.toLowerCase().includes(buscaProd.toLowerCase()) || p.sku.toLowerCase().includes(buscaProd.toLowerCase()))
   )
 
   function addItem(prod: Produto) {
     setItens((prev) => {
       if (prev.find((i) => i.prodId === prod.id)) return prev
-      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco: prod.preco, qtd: 1, maxQtd: prod.qtd, desconto: '' }]
+      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco: prod.preco, qtd: 1, maxQtd: limitarEstoque ? prod.qtd : 99999, desconto: '' }]
     })
     setBuscaProd('')
   }
@@ -309,7 +310,7 @@ export function NovoPedido({
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[13px] font-medium text-synk-navy">{p.nome}</p>
-                          <p className="font-mono text-[11px] text-[#94A3B8]">{p.sku} · {p.qtd} em estoque</p>
+                          <p className="font-mono text-[11px] text-[#94A3B8]">{p.sku}{limitarEstoque ? ` · ${p.qtd} em estoque` : ` · estoque atual: ${p.qtd}`}</p>
                         </div>
                         <span className="font-mono text-[13px] font-semibold text-synk-navy">{formatBRL(p.preco)}</span>
                         {inCart && <span className="text-[11px] font-semibold text-synk-indigo">adicionado ✓</span>}
