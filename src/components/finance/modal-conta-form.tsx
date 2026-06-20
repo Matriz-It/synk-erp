@@ -63,7 +63,7 @@ export function ModalContaForm({
     setErrors({})
   }, [open, conta, categorias])
 
-  function set<K extends keyof ContaForm>(key: K, value: string) {
+  function set<K extends keyof ContaForm>(key: K, value: ContaForm[K]) {
     setForm(f => ({ ...f, [key]: value }))
     setErrors(e => ({ ...e, [key]: undefined }))
   }
