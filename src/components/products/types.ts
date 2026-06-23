@@ -62,14 +62,14 @@ export function formatDate(iso: string): string {
 }
 
 export const PRODUTOS_MOCK: Produto[] = [
-  { id: '1', sku: 'SKU-001', nome: 'Café Expresso 500g', categoria: 'alimentos', preco: 28.90, qtd: 142, qtdMin: 20, foto: null, ativo: true, criadoEm: '2026-01-10' },
-  { id: '2', sku: 'SKU-002', nome: 'Água Mineral 500ml (cx 24un)', categoria: 'bebidas', preco: 18.50, qtd: 8, qtdMin: 10, foto: null, ativo: true, criadoEm: '2026-01-15' },
-  { id: '3', sku: 'SKU-003', nome: 'Detergente Neutro 500ml', categoria: 'limpeza', preco: 4.20, qtd: 0, qtdMin: 15, foto: null, ativo: true, criadoEm: '2026-01-20' },
-  { id: '4', sku: 'SKU-004', nome: 'Notebook Dell Inspiron 15"', categoria: 'eletronicos', preco: 3299.00, qtd: 5, qtdMin: 2, foto: null, ativo: true, criadoEm: '2026-02-01' },
-  { id: '5', sku: 'SKU-005', nome: 'Resma de Papel A4 500fls', categoria: 'papelaria', preco: 32.00, qtd: 67, qtdMin: 10, foto: null, ativo: true, criadoEm: '2026-02-10' },
-  { id: '6', sku: 'SKU-006', nome: 'Biscoito Cream Cracker 400g', categoria: 'alimentos', preco: 6.80, qtd: 3, qtdMin: 25, foto: null, ativo: false, criadoEm: '2026-02-15' },
-  { id: '7', sku: 'SKU-007', nome: 'Refrigerante Cola 2L', categoria: 'bebidas', preco: 9.50, qtd: 44, qtdMin: 12, foto: null, ativo: true, criadoEm: '2026-03-01' },
-  { id: '8', sku: 'SKU-008', nome: 'Mouse Wireless Logitech', categoria: 'eletronicos', preco: 189.90, qtd: 11, qtdMin: 3, foto: null, ativo: true, criadoEm: '2026-03-05' },
+  { id: '1', sku: 'SKU-001', nome: 'Café Expresso 500g', categoria: 'alimentos', preco: 28.90, precoCusto: null, qtd: 142, qtdMin: 20, foto: null, ativo: true, criadoEm: '2026-01-10' },
+  { id: '2', sku: 'SKU-002', nome: 'Água Mineral 500ml (cx 24un)', categoria: 'bebidas', preco: 18.50, precoCusto: null, qtd: 8, qtdMin: 10, foto: null, ativo: true, criadoEm: '2026-01-15' },
+  { id: '3', sku: 'SKU-003', nome: 'Detergente Neutro 500ml', categoria: 'limpeza', preco: 4.20, precoCusto: null, qtd: 0, qtdMin: 15, foto: null, ativo: true, criadoEm: '2026-01-20' },
+  { id: '4', sku: 'SKU-004', nome: 'Notebook Dell Inspiron 15"', categoria: 'eletronicos', preco: 3299.00, precoCusto: null, qtd: 5, qtdMin: 2, foto: null, ativo: true, criadoEm: '2026-02-01' },
+  { id: '5', sku: 'SKU-005', nome: 'Resma de Papel A4 500fls', categoria: 'papelaria', preco: 32.00, precoCusto: null, qtd: 67, qtdMin: 10, foto: null, ativo: true, criadoEm: '2026-02-10' },
+  { id: '6', sku: 'SKU-006', nome: 'Biscoito Cream Cracker 400g', categoria: 'alimentos', preco: 6.80, precoCusto: null, qtd: 3, qtdMin: 25, foto: null, ativo: false, criadoEm: '2026-02-15' },
+  { id: '7', sku: 'SKU-007', nome: 'Refrigerante Cola 2L', categoria: 'bebidas', preco: 9.50, precoCusto: null, qtd: 44, qtdMin: 12, foto: null, ativo: true, criadoEm: '2026-03-01' },
+  { id: '8', sku: 'SKU-008', nome: 'Mouse Wireless Logitech', categoria: 'eletronicos', preco: 189.90, precoCusto: null, qtd: 11, qtdMin: 3, foto: null, ativo: true, criadoEm: '2026-03-05' },
 ]
 
 export const MOV_MOCK: MovMap = {
