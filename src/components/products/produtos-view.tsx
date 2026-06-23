@@ -114,7 +114,7 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
       try {
         const updated = await updateProductAction(produtoEdicao.id, {
           sku: data.sku, nome: data.nome, categoria: data.categoria,
-          preco: data.preco, qtdMin: data.qtdMin, ativo: data.ativo, foto: data.foto,
+          preco: data.preco, precoCusto: data.precoCusto, qtdMin: data.qtdMin, ativo: data.ativo, foto: data.foto,
         })
         setProdutos((ps) => ps.map((p) => p.id === produtoEdicao.id ? updated : p))
         toast.success('Produto atualizado')
@@ -130,7 +130,7 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
       try {
         const created = await createProductAction({
           sku: data.sku, nome: data.nome, categoria: data.categoria,
-          preco: data.preco, qtdInicial: data.qtdInicial, qtdMin: data.qtdMin,
+          preco: data.preco, precoCusto: data.precoCusto, qtdInicial: data.qtdInicial, qtdMin: data.qtdMin,
           ativo: data.ativo, foto: data.foto ?? undefined,
         })
         setProdutos((ps) => ps.map((p) => p.id === tempId ? created : p))

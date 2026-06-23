@@ -316,7 +316,10 @@ export function NovoPedido({
                           <p className="truncate text-[13px] font-medium text-synk-navy">{p.nome}</p>
                           <p className="font-mono text-[11px] text-[#94A3B8]">{p.sku}{limitarEstoque ? ` · ${p.qtd} em estoque` : ` · estoque atual: ${p.qtd}`}</p>
                         </div>
-                        <span className="font-mono text-[13px] font-semibold text-synk-navy">{formatBRL(p.preco)}</span>
+                        <span className="font-mono text-[13px] font-semibold text-synk-navy">
+                          {formatBRL(!limitarEstoque ? (p.precoCusto ?? p.preco) : p.preco)}
+                          {!limitarEstoque && p.precoCusto && <span className="ml-1 text-[10px] text-[#94A3B8]">custo</span>}
+                        </span>
                         {inCart && <span className="text-[11px] font-semibold text-synk-indigo">adicionado ✓</span>}
                       </button>
                     )
