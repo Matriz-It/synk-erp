@@ -15,6 +15,7 @@ interface FormState {
   sku: string
   categoria: string
   preco: number
+  precoCusto: number
   qtdInicial: string
   ativo: boolean
 }
@@ -56,7 +57,7 @@ export function ModalCadastro({
   const isEditing = !!produtoEdicao
 
   const [form, setForm] = useState<FormState>({
-    nome: '', sku: '', categoria: 'alimentos', preco: 0, qtdInicial: '', ativo: true,
+    nome: '', sku: '', categoria: 'alimentos', preco: 0, precoCusto: 0, qtdInicial: '', ativo: true,
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
@@ -69,11 +70,12 @@ export function ModalCadastro({
         sku: produtoEdicao.sku,
         categoria: produtoEdicao.categoria,
         preco: produtoEdicao.preco,
+        precoCusto: produtoEdicao.precoCusto ?? 0,
         qtdInicial: '',
         ativo: produtoEdicao.ativo,
       })
     } else {
-      setForm({ nome: '', sku: '', categoria: 'alimentos', preco: 0, qtdInicial: '', ativo: true })
+      setForm({ nome: '', sku: '', categoria: 'alimentos', preco: 0, precoCusto: 0, qtdInicial: '', ativo: true })
     }
     setErrors({})
   }, [open, produtoEdicao])
@@ -95,6 +97,7 @@ export function ModalCadastro({
         nome: form.nome.trim(),
         categoria: form.categoria,
         preco: form.preco,
+        precoCusto: form.precoCusto > 0 ? form.precoCusto : null,
         qtd: isEditing ? (produtoEdicao?.qtd ?? 0) : (parseInt(form.qtdInicial) || 0),
         qtdMin: produtoEdicao?.qtdMin ?? 10,
         ativo: form.ativo,
@@ -158,7 +161,17 @@ export function ModalCadastro({
               error={!!errors.preco}
             />
           </Field>
-          {!isEditing && (
+          <Field label="Preço de custo (fornecedor)">
+            <CurrencyInput
+              value={form.precoCusto}
+              onChange={(v) => set('precoCusto', v)}
+              placeholder="0,00 (opcional)"
+            />
+          </Field>
+        </div>
+
+        {!isEditing && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Qtd. inicial" error={errors.qtdInicial}>
               <Input
                 placeholder="0"
@@ -168,8 +181,8 @@ export function ModalCadastro({
                 inputMode="numeric"
               />
             </Field>
-          )}
-        </div>
+          </div>
+        )}
 
         <label className="flex cursor-pointer items-center gap-3 rounded-md border border-[#E2E8F0] p-3 transition-colors has-[:checked]:border-synk-indigo has-[:checked]:bg-synk-indigo-light/40">
           <Checkbox

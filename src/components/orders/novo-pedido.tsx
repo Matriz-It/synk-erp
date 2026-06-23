@@ -104,7 +104,9 @@ export function NovoPedido({
   function addItem(prod: Produto) {
     setItens((prev) => {
       if (prev.find((i) => i.prodId === prod.id)) return prev
-      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco: prod.preco, qtd: 1, maxQtd: limitarEstoque ? prod.qtd : 99999, desconto: '' }]
+      // Pedidos de compra usam preço de custo; pedidos de venda usam preço de venda
+      const preco = !limitarEstoque ? (prod.precoCusto ?? prod.preco) : prod.preco
+      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco, qtd: 1, maxQtd: limitarEstoque ? prod.qtd : 99999, desconto: '' }]
     })
     setBuscaProd('')
   }

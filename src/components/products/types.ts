@@ -4,6 +4,7 @@ export interface Produto {
   nome: string
   categoria: string
   preco: number
+  precoCusto: number | null
   qtd: number
   qtdMin: number
   foto: string | null
