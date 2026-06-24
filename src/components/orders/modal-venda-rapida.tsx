@@ -25,6 +25,7 @@ interface ItemVenda {
   sku: string
   preco: number
   qtd: number
+  maxQtd: number   // estoque disponível no momento da adição
 }
 
 interface Props {
@@ -64,16 +65,25 @@ export function ModalVendaRapida({ open, onClose, clientes, produtos, onConcluir
   function addItem(prod: Produto) {
     setItens((prev) => {
       const existing = prev.find((i) => i.prodId === prod.id)
-      if (existing) return prev.map((i) => i.prodId === prod.id ? { ...i, qtd: i.qtd + 1 } : i)
-      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco: prod.preco, qtd: 1 }]
+      if (existing) {
+        // já no carrinho: incrementa respeitando o estoque
+        return prev.map((i) =>
+          i.prodId === prod.id
+            ? { ...i, qtd: Math.min(i.qtd + 1, i.maxQtd) }
+            : i
+        )
+      }
+      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco: prod.preco, qtd: 1, maxQtd: prod.qtd }]
     })
     setBuscaProd('')
   }
 
   function updateQtd(prodId: string, delta: number) {
-    setItens((prev) => prev
-      .map((i) => i.prodId === prodId ? { ...i, qtd: Math.max(1, i.qtd + delta) } : i)
-    )
+    setItens((prev) => prev.map((i) =>
+      i.prodId === prodId
+        ? { ...i, qtd: Math.max(1, Math.min(i.qtd + delta, i.maxQtd)) }
+        : i
+    ))
   }
 
   function removeItem(prodId: string) {
@@ -181,34 +191,46 @@ export function ModalVendaRapida({ open, onClose, clientes, produtos, onConcluir
                       <p className="font-mono text-[11px] text-[#94A3B8]">{formatBRL(item.preco)} / un</p>
                     </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-center gap-1">
-                        <button type="button" onClick={() => updateQtd(item.prodId, -1)}
-                          disabled={item.qtd <= 1}
-                          className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:opacity-40">
-                          <Minus className="size-3" strokeWidth={2} />
-                        </button>
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          min="1"
-                          value={item.qtd}
-                          onChange={(e) => {
-                            const v = parseInt(e.target.value, 10)
-                            if (!isNaN(v) && v >= 1) {
-                              setItens((prev) => prev.map((i) => i.prodId === item.prodId ? { ...i, qtd: v } : i))
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const v = parseInt(e.target.value, 10)
-                            const safe = !e.target.value || isNaN(v) || v < 1 ? 1 : v
-                            setItens((prev) => prev.map((i) => i.prodId === item.prodId ? { ...i, qtd: safe } : i))
-                          }}
-                          className="w-14 rounded border border-[#E2E8F0] px-1 py-1 text-center font-mono text-[13px] font-semibold text-synk-navy focus:border-synk-indigo focus:outline-none focus:ring-1 focus:ring-synk-indigo/20"
-                        />
-                        <button type="button" onClick={() => updateQtd(item.prodId, 1)}
-                          className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9]">
-                          <Plus className="size-3" strokeWidth={2} />
-                        </button>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => updateQtd(item.prodId, -1)}
+                            disabled={item.qtd <= 1}
+                            className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:opacity-40">
+                            <Minus className="size-3" strokeWidth={2} />
+                          </button>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            min="1"
+                            max={item.maxQtd}
+                            value={item.qtd}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10)
+                              if (!isNaN(v) && v >= 1) {
+                                const clamped = Math.min(v, item.maxQtd)
+                                setItens((prev) => prev.map((i) => i.prodId === item.prodId ? { ...i, qtd: clamped } : i))
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const v = parseInt(e.target.value, 10)
+                              const safe = !e.target.value || isNaN(v) || v < 1 ? 1 : Math.min(v, item.maxQtd)
+                              setItens((prev) => prev.map((i) => i.prodId === item.prodId ? { ...i, qtd: safe } : i))
+                            }}
+                            className={`w-14 rounded border px-1 py-1 text-center font-mono text-[13px] font-semibold text-synk-navy focus:outline-none focus:ring-1 ${
+                              item.qtd >= item.maxQtd
+                                ? 'border-[#f59e0b] bg-[#fffbeb] focus:border-[#f59e0b] focus:ring-[#f59e0b]/20'
+                                : 'border-[#E2E8F0] bg-white focus:border-synk-indigo focus:ring-synk-indigo/20'
+                            }`}
+                          />
+                          <button type="button" onClick={() => updateQtd(item.prodId, 1)}
+                            disabled={item.qtd >= item.maxQtd}
+                            className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-40">
+                            <Plus className="size-3" strokeWidth={2} />
+                          </button>
+                        </div>
+                        {item.qtd >= item.maxQtd && (
+                          <span className="text-[10px] text-[#f59e0b]">máx {item.maxQtd}</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-3 py-2.5 text-right font-mono text-[13px] font-bold text-synk-navy">
@@ -251,7 +273,7 @@ export function ModalVendaRapida({ open, onClose, clientes, produtos, onConcluir
         {/* Cliente (opcional) */}
         <div className="flex flex-col gap-1.5">
           <Label>
-            Cliente <span className="font-normal text-[#94A3B8]">(opcional — deixe em branco para Consumidor Final)</span>
+            Cliente <span className="font-normal text-[#94A3B8]">(opcional)</span>
           </Label>
           {clienteSel ? (
             <div className="flex items-center justify-between rounded-lg border border-synk-indigo bg-synk-indigo-light px-3 py-2">
@@ -296,9 +318,9 @@ export function ModalVendaRapida({ open, onClose, clientes, produtos, onConcluir
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Total</p>
             <p className="font-display text-2xl font-bold text-synk-navy">{formatBRL(total)}</p>
-            {clienteSel && (
-              <p className="text-[11px] text-[#64748B]">{clienteSel.razaoSocial}</p>
-            )}
+            <p className="text-[11px] text-[#64748B]">
+              {clienteSel ? clienteSel.razaoSocial : 'Cliente: Não informado'}
+            </p>
           </div>
           <button
             type="button"
