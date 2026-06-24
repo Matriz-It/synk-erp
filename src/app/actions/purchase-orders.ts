@@ -11,7 +11,7 @@ function handleAuth(err: unknown): never {
 }
 
 interface PurchaseOrderPayload {
-  clientId: string
+  clientId?: string
   status: StatusPedido
   obs: string
   descontoGlobal: number
