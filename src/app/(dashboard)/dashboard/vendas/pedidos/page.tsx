@@ -13,6 +13,7 @@ const PEDIDO_CONFIG = {
   allowedStatuses: ['pendente', 'em_andamento', 'concluido'] as const,
   editableStatuses: ['pendente'] as const,
   showNFe: true,
+  showVendaRapida: true,
 }
 
 export default async function PedidosPage() {

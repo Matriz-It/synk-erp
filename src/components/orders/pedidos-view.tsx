@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ArrowRight, Loader2, Plus, Search, ShoppingCart } from 'lucide-react'
+import { ArrowRight, Loader2, Plus, Search, ShoppingCart, Zap } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ModalDetalhePedido } from './modal-detalhe'
+import { ModalVendaRapida } from './modal-venda-rapida'
 import { NovoPedido } from './novo-pedido'
 import { StatusBadge } from './status-badge'
 import { toast } from 'sonner'
@@ -54,6 +55,8 @@ export interface OrderViewConfig {
   parceiroLabel?: string
   /** false = pedidos de compra — sem limite de estoque e mostra produtos zerados */
   enforceStockLimit?: boolean
+  /** true = mostra botão de Venda Rápida (apenas em pedidos de venda) */
+  showVendaRapida?: boolean
 }
 
 const DEFAULT_CONFIG: OrderViewConfig = {
@@ -97,6 +100,7 @@ export function PedidosView({
   const [editingOrder, setEditingOrder] = useState<OrderDetail | null>(null)
   const [loadingEdit, setLoadingEdit] = useState(false)
   const [receivingId, setReceivingId] = useState<string | null>(null)
+  const [vendaRapidaOpen, setVendaRapidaOpen] = useState(false)
 
   const filtrados = useMemo(() => {
     const q = search.toLowerCase()
@@ -196,9 +200,21 @@ export function PedidosView({
             {pedidos.length} {pedidos.length !== 1 ? cfg.entityPlural : cfg.entity} · {kpis.aprovados} aprovado{kpis.aprovados !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button onClick={() => setView('novo')} className="bg-synk-indigo hover:bg-synk-indigo-hover">
-          <Plus className="size-4" strokeWidth={2.5} />{cfg.novoLabel}
-        </Button>
+        <div className="flex items-center gap-2">
+          {cfg.showVendaRapida && (
+            <button
+              type="button"
+              onClick={() => setVendaRapidaOpen(true)}
+              className="flex items-center gap-1.5 rounded-md border border-[#14b87e] bg-[#d1fae5] px-4 py-2 text-[13px] font-semibold text-[#14b87e] transition-colors hover:bg-[#bbf7d0]"
+            >
+              <Zap className="size-4" strokeWidth={2} />
+              Venda Rápida
+            </button>
+          )}
+          <Button onClick={() => setView('novo')} className="bg-synk-indigo hover:bg-synk-indigo-hover">
+            <Plus className="size-4" strokeWidth={2.5} />{cfg.novoLabel}
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -307,6 +323,20 @@ export function PedidosView({
           </div>
         )}
       </div>
+
+      {cfg.showVendaRapida && (
+        <ModalVendaRapida
+          open={vendaRapidaOpen}
+          onClose={() => setVendaRapidaOpen(false)}
+          clientes={clientes}
+          produtos={produtos}
+          onConcluir={async (payload) => {
+            const created = await act.create(payload)
+            setPedidos((ps) => [created, ...ps])
+            setVendaRapidaOpen(false)
+          }}
+        />
+      )}
 
       <ModalDetalhePedido
         pedido={pedidoDetalhe}
