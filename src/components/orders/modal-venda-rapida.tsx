@@ -95,7 +95,7 @@ export function ModalVendaRapida({ open, onClose, clientes, produtos, onConcluir
     setSalvando(true)
     try {
       await onConcluir({
-        clientId: clienteSel?.id ?? '',
+        clientId: clienteSel?.id ?? undefined,
         status: 'concluido',
         obs: '',
         descontoGlobal: 0,

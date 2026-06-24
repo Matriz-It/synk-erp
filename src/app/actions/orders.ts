@@ -53,7 +53,7 @@ interface OrderPayload {
 
 function buildOrderBody(data: OrderPayload) {
   return {
-    clientId: data.clientId,
+    clientId: data.clientId || undefined,
     status: data.status,
     obs: data.obs || undefined,
     descontoGlobal: data.descontoGlobal || undefined,
