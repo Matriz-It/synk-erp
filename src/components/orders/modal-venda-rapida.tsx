@@ -181,12 +181,30 @@ export function ModalVendaRapida({ open, onClose, clientes, produtos, onConcluir
                       <p className="font-mono text-[11px] text-[#94A3B8]">{formatBRL(item.preco)} / un</p>
                     </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-1">
                         <button type="button" onClick={() => updateQtd(item.prodId, -1)}
-                          className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9]">
+                          disabled={item.qtd <= 1}
+                          className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:opacity-40">
                           <Minus className="size-3" strokeWidth={2} />
                         </button>
-                        <span className="w-7 text-center font-mono text-[13px] font-semibold">{item.qtd}</span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min="1"
+                          value={item.qtd}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value, 10)
+                            if (!isNaN(v) && v >= 1) {
+                              setItens((prev) => prev.map((i) => i.prodId === item.prodId ? { ...i, qtd: v } : i))
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const v = parseInt(e.target.value, 10)
+                            const safe = !e.target.value || isNaN(v) || v < 1 ? 1 : v
+                            setItens((prev) => prev.map((i) => i.prodId === item.prodId ? { ...i, qtd: safe } : i))
+                          }}
+                          className="w-14 rounded border border-[#E2E8F0] px-1 py-1 text-center font-mono text-[13px] font-semibold text-synk-navy focus:border-synk-indigo focus:outline-none focus:ring-1 focus:ring-synk-indigo/20"
+                        />
                         <button type="button" onClick={() => updateQtd(item.prodId, 1)}
                           className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9]">
                           <Plus className="size-3" strokeWidth={2} />

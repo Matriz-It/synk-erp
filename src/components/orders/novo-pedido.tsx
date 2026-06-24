@@ -119,6 +119,19 @@ export function NovoPedido({
     }))
   }
 
+  function setQtdDirect(prodId: string, raw: string, maxQtd: number) {
+    const parsed = parseInt(raw, 10)
+    if (isNaN(parsed)) return                                     // ignora texto inválido
+    const clamped = Math.max(1, Math.min(parsed, maxQtd))
+    setItens((prev) => prev.map((i) => i.prodId === prodId ? { ...i, qtd: clamped } : i))
+  }
+
+  function fixQtdOnBlur(prodId: string, raw: string, maxQtd: number) {
+    const parsed = parseInt(raw, 10)
+    const safe = (!raw || isNaN(parsed) || parsed < 1) ? 1 : Math.min(parsed, maxQtd)
+    setItens((prev) => prev.map((i) => i.prodId === prodId ? { ...i, qtd: safe } : i))
+  }
+
   function updateDesconto(prodId: string, val: string) {
     setItens((prev) => prev.map((i) => i.prodId === prodId ? { ...i, desconto: maskBRL(val) } : i))
   }
@@ -358,10 +371,36 @@ export function NovoPedido({
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-center gap-1">
-                              <button type="button" onClick={() => updateQtd(item.prodId, -1)} className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9]">−</button>
-                              <span className="w-8 text-center font-mono text-[13px] font-semibold text-synk-navy">{item.qtd}</span>
-                              <button type="button" onClick={() => updateQtd(item.prodId, 1)} disabled={item.qtd >= item.maxQtd} className="flex size-6 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-40">+</button>
+                              <button
+                                type="button"
+                                onClick={() => updateQtd(item.prodId, -1)}
+                                disabled={item.qtd <= 1}
+                                className="flex size-6 shrink-0 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-40"
+                              >−</button>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                min="1"
+                                max={item.maxQtd < 99999 ? item.maxQtd : undefined}
+                                value={item.qtd}
+                                onChange={(e) => setQtdDirect(item.prodId, e.target.value, item.maxQtd)}
+                                onBlur={(e) => fixQtdOnBlur(item.prodId, e.target.value, item.maxQtd)}
+                                className={`w-14 rounded border px-1 py-1 text-center font-mono text-[13px] font-semibold text-synk-navy focus:outline-none focus:ring-1 focus:ring-synk-indigo/20 ${
+                                  limitarEstoque && item.qtd >= item.maxQtd
+                                    ? 'border-[#f59e0b] bg-[#fffbeb] focus:border-[#f59e0b]'
+                                    : 'border-[#E2E8F0] bg-white focus:border-synk-indigo'
+                                }`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateQtd(item.prodId, 1)}
+                                disabled={limitarEstoque && item.qtd >= item.maxQtd}
+                                className="flex size-6 shrink-0 items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-40"
+                              >+</button>
                             </div>
+                            {limitarEstoque && item.qtd >= item.maxQtd && (
+                              <p className="mt-0.5 text-center text-[10px] text-[#f59e0b]">máx {item.maxQtd}</p>
+                            )}
                           </td>
                           <td className="hidden px-4 py-3 text-right font-mono text-[13px] text-[#64748B] sm:table-cell">{formatBRL(item.preco)}</td>
                           <td className="hidden px-4 py-3 sm:table-cell">

@@ -41,7 +41,7 @@ export async function getOrderAction(id: string): Promise<OrderDetail> {
 }
 
 interface OrderPayload {
-  clientId: string
+  clientId?: string
   status: StatusPedido
   obs: string
   descontoGlobal: number

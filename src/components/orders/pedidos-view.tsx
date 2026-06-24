@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { createOrderAction, getOrderAction, updateOrderFullAction, type OrderDetail } from '@/app/actions/orders'
 
 export interface OrderSavePayload {
-  clientId: string
+  clientId?: string
   status: StatusPedido
   obs: string
   descontoGlobal: number
