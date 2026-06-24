@@ -28,7 +28,7 @@ export async function getQuoteAction(id: string): Promise<OrderDetail> {
 }
 
 interface QuotePayload {
-  clientId: string
+  clientId?: string
   status: StatusPedido
   obs: string
   descontoGlobal: number
