@@ -74,6 +74,7 @@ export function ModalDetalhe({
   }
 
   async function saveComposicao() {
+    if (!produto) return
     setSavingComp(true)
     try {
       const saved = await saveComponentsAction(produto.id, componentes.map((c) => ({
