@@ -77,6 +77,7 @@ export const NAVIGATION: NavItem[] = [
     icon: Settings,
     allowedRoles: ["proprietario", "admin"],
     children: [
+      { label: "Empresa", href: "/dashboard/configuracoes/empresa" },
       { label: "Equipe", href: "/dashboard/configuracoes/equipe" },
     ],
   },
