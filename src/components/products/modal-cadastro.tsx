@@ -340,6 +340,16 @@ export function ModalCadastro({
           </div>
         )}
 
+        {/* ── Resumo Financeiro ── */}
+        {form.preco > 0 && (
+          <ResumoFinanceiro
+            preco={form.preco}
+            precoCusto={form.precoCusto}
+            componentes={componentes}
+            todosProdutos={todosProdutos}
+          />
+        )}
+
         {/* ── Ativo ── */}
         <label className="flex cursor-pointer items-center gap-3 rounded-md border border-[#E2E8F0] p-3 transition-colors has-[:checked]:border-synk-indigo has-[:checked]:bg-synk-indigo-light/40">
           <Checkbox checked={form.ativo} onCheckedChange={(v) => set('ativo', v === true)}
@@ -360,6 +370,80 @@ export function ModalCadastro({
         </div>
       </div>
     </ModalWrapper>
+  )
+}
+
+function ResumoFinanceiro({
+  preco, precoCusto, componentes, todosProdutos,
+}: {
+  preco: number
+  precoCusto: number
+  componentes: Componente[]
+  todosProdutos: Produto[]
+}) {
+  // Custo estimado pela composição
+  const custoComposicao = componentes.reduce((acc, c) => {
+    const mat = todosProdutos.find((p) => p.id === c.materialId)
+    return acc + (mat?.precoCusto ?? mat?.preco ?? 0) * c.quantidade
+  }, 0)
+
+  // Custo efetivo: preço de custo manual tem prioridade; senão usa composição
+  const custoEfetivo = precoCusto > 0 ? precoCusto : custoComposicao
+
+  const margem = preco > 0 && custoEfetivo > 0
+    ? ((preco - custoEfetivo) / preco) * 100
+    : null
+
+  const margemColor = margem === null ? '#94A3B8'
+    : margem < 0   ? '#ef4444'
+    : margem < 20  ? '#f59e0b'
+    : '#14b87e'
+
+  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+
+  return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-[#F8F9FC] p-4">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Resumo Financeiro</p>
+      <div className="grid grid-cols-3 gap-3">
+        {/* Custo estimado (composição) */}
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[11px] text-[#94A3B8]">Custo composição</p>
+          <p className="font-mono text-[14px] font-bold text-synk-navy">
+            {custoComposicao > 0 ? fmt(custoComposicao) : '—'}
+          </p>
+          {custoComposicao > 0 && componentes.length > 0 && (
+            <p className="text-[10px] text-[#94A3B8]">{componentes.length} material{componentes.length !== 1 ? 'is' : ''}</p>
+          )}
+        </div>
+
+        {/* Preço de venda */}
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[11px] text-[#94A3B8]">Preço de venda</p>
+          <p className="font-mono text-[14px] font-bold text-synk-navy">{fmt(preco)}</p>
+        </div>
+
+        {/* Margem de lucro */}
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[11px] text-[#94A3B8]">Margem de lucro</p>
+          <p className="font-display text-[18px] font-bold" style={{ color: margemColor }}>
+            {margem !== null ? `${margem.toFixed(1)}%` : '—'}
+          </p>
+          {margem !== null && (
+            <p className="text-[10px]" style={{ color: margemColor }}>
+              {margem < 0 ? 'Prejuízo' : margem < 20 ? 'Margem baixa' : margem < 40 ? 'Saudável' : 'Excelente'}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Aviso de custo manual vs composição */}
+      {precoCusto > 0 && custoComposicao > 0 && Math.abs(precoCusto - custoComposicao) > 0.01 && (
+        <p className="mt-2.5 text-[11px] text-[#94A3B8]">
+          ℹ Custo manual ({fmt(precoCusto)}) difere do custo da composição ({fmt(custoComposicao)}).
+          A margem usa o custo manual.
+        </p>
+      )}
+    </div>
   )
 }
 
