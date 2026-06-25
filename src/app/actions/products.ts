@@ -62,7 +62,7 @@ export async function createProductAction(dto: {
 
 export async function updateProductAction(
   id: string,
-  dto: Partial<{ sku: string; nome: string; categoria: string; preco: number; precoCusto: number | null; qtdMin: number; foto: string | null; ativo: boolean }>,
+  dto: Partial<{ sku: string; nome: string; categoria: string; preco: number; precoCusto: number | null; qtdMin: number; foto: string | null; ativo: boolean; isMateriaPrima: boolean }>,
 ): Promise<Produto> {
   try {
     return await apiPatch<Produto>(`/products/${id}`, dto)
