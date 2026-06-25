@@ -1,8 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { apiGet, apiPatch, apiPost, ApiError } from '@/lib/api'
-import type { Produto, Movimentacao, MovimentacaoGlobal } from '@/components/products/types'
+import { apiGet, apiPatch, apiPost, apiPut, ApiError } from '@/lib/api'
+import type { Produto, Movimentacao, MovimentacaoGlobal, Componente } from '@/components/products/types'
 
 interface ProductDetail extends Produto {
   movimentacoes: Movimentacao[]
@@ -30,12 +30,24 @@ export async function getProductDetailAction(id: string): Promise<ProductDetail>
   }
 }
 
+export async function saveComponentsAction(
+  productId: string,
+  componentes: { materialId: string; quantidade: number; unidade: string }[],
+): Promise<Componente[]> {
+  try {
+    return await apiPut<Componente[]>(`/products/${productId}/components`, { componentes })
+  } catch (err) {
+    return handleAuthError(err)
+  }
+}
+
 export async function createProductAction(dto: {
   sku: string
   nome: string
   categoria: string
   preco: number
   precoCusto?: number | null
+  isMateriaPrima?: boolean
   qtdInicial?: number
   qtdMin?: number
   foto?: string | null

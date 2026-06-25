@@ -18,6 +18,7 @@ interface FormState {
   precoCusto: number
   qtdInicial: string
   ativo: boolean
+  isMateriaPrima: boolean
 }
 
 type FormErrors = Partial<Record<keyof FormState, string>>
@@ -57,7 +58,7 @@ export function ModalCadastro({
   const isEditing = !!produtoEdicao
 
   const [form, setForm] = useState<FormState>({
-    nome: '', sku: '', categoria: 'alimentos', preco: 0, precoCusto: 0, qtdInicial: '', ativo: true,
+    nome: '', sku: '', categoria: 'alimentos', preco: 0, precoCusto: 0, qtdInicial: '', ativo: true, isMateriaPrima: false,
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
@@ -73,9 +74,10 @@ export function ModalCadastro({
         precoCusto: produtoEdicao.precoCusto ?? 0,
         qtdInicial: '',
         ativo: produtoEdicao.ativo,
+        isMateriaPrima: produtoEdicao.isMateriaPrima,
       })
     } else {
-      setForm({ nome: '', sku: '', categoria: 'alimentos', preco: 0, precoCusto: 0, qtdInicial: '', ativo: true })
+      setForm({ nome: '', sku: '', categoria: 'alimentos', preco: 0, precoCusto: 0, qtdInicial: '', ativo: true, isMateriaPrima: false })
     }
     setErrors({})
   }, [open, produtoEdicao])
@@ -98,6 +100,7 @@ export function ModalCadastro({
         categoria: form.categoria,
         preco: form.preco,
         precoCusto: form.precoCusto > 0 ? form.precoCusto : null,
+        isMateriaPrima: form.isMateriaPrima,
         qtd: isEditing ? (produtoEdicao?.qtd ?? 0) : (parseInt(form.qtdInicial) || 0),
         qtdMin: produtoEdicao?.qtdMin ?? 10,
         ativo: form.ativo,
@@ -183,6 +186,18 @@ export function ModalCadastro({
             </Field>
           </div>
         )}
+
+        <label className="flex cursor-pointer items-center gap-3 rounded-md border border-[#E2E8F0] p-3 transition-colors has-[:checked]:border-[#f59e0b] has-[:checked]:bg-[#fffbeb]">
+          <Checkbox
+            checked={form.isMateriaPrima}
+            onCheckedChange={(v) => set('isMateriaPrima', v === true)}
+            className="border-[#94A3B8] data-[state=checked]:border-[#f59e0b] data-[state=checked]:bg-[#f59e0b]"
+          />
+          <div>
+            <p className="text-sm font-medium text-synk-navy">Este produto é uma matéria-prima</p>
+            <p className="text-xs text-[#94A3B8]">Matérias-primas são usadas na composição de outros produtos</p>
+          </div>
+        </label>
 
         <label className="flex cursor-pointer items-center gap-3 rounded-md border border-[#E2E8F0] p-3 transition-colors has-[:checked]:border-synk-indigo has-[:checked]:bg-synk-indigo-light/40">
           <Checkbox

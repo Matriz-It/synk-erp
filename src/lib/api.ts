@@ -102,6 +102,21 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   )
 }
 
+export async function apiPut<T>(path: string, body: unknown): Promise<T> {
+  return fetchWithRefresh<T>(
+    async () => {
+      const auth = await authHeader()
+      return fetch(`${API_URL}${path}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...auth },
+        body: JSON.stringify(body),
+        cache: 'no-store',
+      })
+    },
+    parseJSON<T>,
+  )
+}
+
 export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   return fetchWithRefresh<T>(
     async () => {
