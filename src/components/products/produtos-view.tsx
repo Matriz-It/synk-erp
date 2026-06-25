@@ -12,9 +12,11 @@ import {
   updateProductAction,
 } from '@/app/actions/products'
 import { ModalCadastro } from './modal-cadastro'
+import { ModalComposicao } from './modal-composicao'
 import { ModalDetalhe } from './modal-detalhe'
 import { ModalMovimentacao } from './modal-movimentacao'
 import {
+  type Componente,
   type Movimentacao,
   type MovMap,
   type Produto,
@@ -43,6 +45,8 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
   const [modalDetalhe, setModalDetalhe] = useState(false)
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null)
   const [modalMovimentacao, setModalMovimentacao] = useState(false)
+  const [modalComposicao, setModalComposicao] = useState(false)
+  const [compMap, setCompMap] = useState<Record<string, Componente[]>>({})
 
   const filtered = useMemo(() => {
     let list = [...produtos]
@@ -89,6 +93,7 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
       try {
         const detail = await getProductDetailAction(p.id)
         setMovMap((m) => ({ ...m, [p.id]: detail.movimentacoes }))
+        if (detail.componentes) setCompMap((m) => ({ ...m, [p.id]: detail.componentes! }))
         setProdutoSelecionado(detail)
         setProdutos((ps) => ps.map((x) => x.id === p.id ? { ...x, qtd: detail.qtd } : x))
       } catch {
@@ -326,7 +331,21 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
         loadingMovs={loadingMovs}
         onNovaMovimentacao={() => { setModalDetalhe(false); setModalMovimentacao(true) }}
         onEditar={() => produtoSelecionado && openEditar(produtoSelecionado)}
+        onComposicao={() => { setModalDetalhe(false); setModalComposicao(true) }}
+        componentesCount={produtoSelecionado ? (compMap[produtoSelecionado.id]?.length ?? 0) : 0}
+      />
+
+      <ModalComposicao
+        open={modalComposicao}
+        onClose={() => { setModalComposicao(false); setModalDetalhe(true) }}
+        produto={produtoSelecionado}
         todosProdutos={produtos}
+        initialComponentes={produtoSelecionado ? (compMap[produtoSelecionado.id] ?? []) : []}
+        onSaved={(comps) => {
+          if (produtoSelecionado) {
+            setCompMap((prev) => ({ ...prev, [produtoSelecionado.id]: comps }))
+          }
+        }}
       />
       <ModalMovimentacao
         open={modalMovimentacao}

@@ -6,6 +6,7 @@ import type { Produto, Movimentacao, MovimentacaoGlobal, Componente } from '@/co
 
 interface ProductDetail extends Produto {
   movimentacoes: Movimentacao[]
+  componentes?: Componente[]
 }
 
 function handleAuthError(err: unknown): never {
