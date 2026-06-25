@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
-import { AlertTriangle, ArrowUpDown, Package, PackageSearch, Plus, Search, Settings } from 'lucide-react'
+import { AlertTriangle, ArrowUpDown, Layers, Package, PackageSearch, Plus, Search, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -112,7 +112,7 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
 
   function openMovimentacao(p: Produto) { setProdutoSelecionado(p); setModalMovimentacao(true) }
 
-  async function handleSaveProduto(data: Omit<Produto, 'id' | 'criadoEm'> & { qtdInicial: number }) {
+  async function handleSaveProduto(data: Omit<Produto, 'id' | 'criadoEm'> & { qtdInicial: number }): Promise<Produto> {
     if (produtoEdicao) {
       const optimistic = { ...produtoEdicao, ...data }
       setProdutos((ps) => ps.map((p) => p.id === produtoEdicao.id ? optimistic : p))
@@ -123,6 +123,8 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
         })
         setProdutos((ps) => ps.map((p) => p.id === produtoEdicao.id ? updated : p))
         toast.success('Produto atualizado')
+        setProdutoEdicao(null)
+        return updated
       } catch (err) {
         setProdutos((ps) => ps.map((p) => p.id === produtoEdicao.id ? produtoEdicao : p))
         toast.error(err instanceof Error ? err.message : 'Erro ao atualizar produto')
@@ -136,7 +138,7 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
         const created = await createProductAction({
           sku: data.sku, nome: data.nome, categoria: data.categoria,
           preco: data.preco, precoCusto: data.precoCusto, qtdInicial: data.qtdInicial, qtdMin: data.qtdMin,
-          ativo: data.ativo, foto: data.foto ?? undefined,
+          ativo: data.ativo, foto: data.foto ?? undefined, isMateriaPrima: data.isMateriaPrima,
         })
         setProdutos((ps) => ps.map((p) => p.id === tempId ? created : p))
         if (data.qtdInicial > 0) {
@@ -146,13 +148,14 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
           }))
         }
         toast.success('Produto cadastrado')
+        setProdutoEdicao(null)
+        return created
       } catch (err) {
         setProdutos((ps) => ps.filter((p) => p.id !== tempId))
         toast.error(err instanceof Error ? err.message : 'Erro ao cadastrar produto')
         throw err
       }
     }
-    setProdutoEdicao(null)
   }
 
   async function handleSaveMovimentacao(mov: Omit<Movimentacao, 'id' | 'operador'>) {
@@ -296,6 +299,22 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
                           <button type="button" onClick={() => openMovimentacao(p)} className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-synk-indigo ring-1 ring-synk-indigo/20 transition-colors hover:bg-synk-indigo-light">
                             Movimentar
                           </button>
+                          {!p.isMateriaPrima && (
+                            <button
+                              type="button"
+                              title="Composição"
+                              onClick={() => { setProdutoSelecionado(p); setModalComposicao(true) }}
+                              className="relative rounded-md p-1.5 text-[#2563eb] transition-colors hover:bg-[#eff6ff]"
+                              aria-label="Composição"
+                            >
+                              <Layers className="size-4" strokeWidth={1.5} />
+                              {(compMap[p.id]?.length ?? 0) > 0 && (
+                                <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full bg-[#2563eb] text-[8px] font-bold text-white">
+                                  {compMap[p.id].length}
+                                </span>
+                              )}
+                            </button>
+                          )}
                           <button type="button" onClick={() => openEditar(p)} className="rounded-md p-1.5 text-[#94A3B8] transition-colors hover:bg-[#F1F5F9] hover:text-synk-navy" aria-label="Editar">
                             <Settings className="size-4" strokeWidth={1.5} />
                           </button>
@@ -322,6 +341,8 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
         onSave={handleSaveProduto}
         existingSkus={existingSkus}
         produtoEdicao={produtoEdicao}
+        todosProdutos={produtos}
+        initialComponentes={produtoEdicao ? (compMap[produtoEdicao.id] ?? []) : []}
       />
       <ModalDetalhe
         open={modalDetalhe}
