@@ -343,6 +343,9 @@ export function ProdutosView({ initialProdutos }: { initialProdutos: Produto[] }
         produtoEdicao={produtoEdicao}
         todosProdutos={produtos}
         initialComponentes={produtoEdicao ? (compMap[produtoEdicao.id] ?? []) : []}
+        onComponentesSaved={(productId, comps) =>
+          setCompMap((prev) => ({ ...prev, [productId]: comps }))
+        }
       />
       <ModalDetalhe
         open={modalDetalhe}

@@ -54,6 +54,7 @@ export function ModalCadastro({
   produtoEdicao,
   todosProdutos = [],
   initialComponentes = [],
+  onComponentesSaved,
 }: {
   open: boolean
   onClose: () => void
@@ -62,6 +63,7 @@ export function ModalCadastro({
   produtoEdicao: Produto | null
   todosProdutos?: Produto[]
   initialComponentes?: Componente[]
+  onComponentesSaved?: (productId: string, componentes: Componente[]) => void
 }) {
   const isEditing = !!produtoEdicao
 
@@ -146,10 +148,16 @@ export function ModalCadastro({
 
       // Salva composição se não for matéria-prima
       if (!form.isMateriaPrima && saved?.id) {
-        await saveComponentsAction(
-          saved.id,
-          componentes.map((c) => ({ materialId: c.materialId, quantidade: c.quantidade, unidade: c.unidade })),
-        )
+        try {
+          const savedComps = await saveComponentsAction(
+            saved.id,
+            componentes.map((c) => ({ materialId: c.materialId, quantidade: c.quantidade, unidade: c.unidade })),
+          )
+          onComponentesSaved?.(saved.id, savedComps)
+        } catch (compErr) {
+          toast.error(compErr instanceof Error ? compErr.message : 'Erro ao salvar composição')
+          return // não fecha o modal se a composição falhou
+        }
       }
       onClose()
     } finally {
