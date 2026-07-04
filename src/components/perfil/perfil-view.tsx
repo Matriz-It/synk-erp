@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { changePasswordAction, updateProfileAction } from '@/app/actions/profile'
+import { saveTenantConfigAction } from '@/app/actions/tenant-config'
 import type { MeData } from '@/app/actions/auth'
 
 const ROLE_LABEL: Record<string, string> = {
@@ -44,7 +45,7 @@ export function PerfilView({ me }: Props) {
 
   // ── Dados pessoais ───────────────────────────────────────────
   const [name, setName] = useState(user?.name ?? '')
-  const [document, setDocument] = useState('')
+  const [document, setDocument] = useState(user?.document ? maskCPF(user.document) : '')
   const [savingProfile, setSavingProfile] = useState(false)
 
   async function handleSaveProfile(e: React.FormEvent) {
@@ -89,7 +90,28 @@ export function PerfilView({ me }: Props) {
     toast.success('Senha alterada com sucesso')
   }
 
+  // ── Segmento da empresa ──────────────────────────────────────
+  const [segmento, setSegmento] = useState(tenant?.segmento ?? '')
+  const [savingSegmento, setSavingSegmento] = useState(false)
+
+  async function handleChangeSegmento(value: string) {
+    const previous = segmento
+    setSegmento(value)
+    setSavingSegmento(true)
+    const err = await saveTenantConfigAction({ segmento: value })
+    setSavingSegmento(false)
+    if (err) {
+      setSegmento(previous)
+      toast.error(err.error)
+      return
+    }
+    toast.success('Segmento atualizado com sucesso')
+    // Atualiza os componentes do servidor (sidebar depende do segmento)
+    router.refresh()
+  }
+
   const role = user?.role ?? ''
+  const canEditSegmento = role === 'proprietario' || role === 'admin'
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -243,6 +265,24 @@ export function PerfilView({ me }: Props) {
           <InfoRow label="Plano" value={PLAN_LABEL[tenant?.plan ?? ''] ?? '—'} />
           <InfoRow label="Função" value={ROLE_LABEL[role] ?? role} />
           <InfoRow label="CNPJ" value={tenant?.document ? formatCNPJ(tenant.document) : '—'} />
+          {canEditSegmento ? (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Segmento</p>
+              <select
+                value={segmento}
+                disabled={savingSegmento}
+                onChange={(e) => handleChangeSegmento(e.target.value)}
+                className="mt-1 h-9 w-full rounded-md border border-[#E2E8F0] bg-white px-2 text-[14px] font-medium text-synk-navy focus:outline-none focus:ring-2 focus:ring-synk-indigo/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="" disabled>Selecione</option>
+                {SEGMENTO_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <InfoRow label="Segmento" value={SEGMENTO_LABEL[segmento] ?? '—'} />
+          )}
         </div>
       </section>
     </div>
@@ -263,6 +303,17 @@ const PLAN_LABEL: Record<string, string> = {
   pro: 'Plano Pro',
   enterprise: 'Enterprise',
 }
+
+const SEGMENTO_OPTIONS = [
+  { value: 'comercio',  label: 'Comércio' },
+  { value: 'industria', label: 'Indústria' },
+  { value: 'servicos',  label: 'Serviços' },
+  { value: 'outros',    label: 'Outros' },
+]
+
+const SEGMENTO_LABEL: Record<string, string> = Object.fromEntries(
+  SEGMENTO_OPTIONS.map((o) => [o.value, o.label]),
+)
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
