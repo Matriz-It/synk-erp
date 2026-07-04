@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect, useTransition } from 'react'
-import { ArrowDownRight, ArrowUpRight, Download, Loader2, Search, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Download, Loader2, Plus, Search, TrendingUp, Wallet } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { getCashflowAction, type CashflowResponse, type LancamentoCaixa } from '@/app/actions/cashflow'
+import { getCashflowAction, createCashEntryAction, type CashflowResponse, type LancamentoCaixa } from '@/app/actions/cashflow'
+import { ModalLancamento } from './modal-lancamento'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -93,6 +95,7 @@ export function FluxoView({ initialData }: { initialData: CashflowResponse }) {
   const [search, setSearch] = useState('')
   const [tipoFilter, setTipoFilter] = useState<'all' | 'entrada' | 'saida'>('all')
   const [mesFilter, setMesFilter] = useState(() => new Date().toISOString().slice(0, 7))
+  const [modalLancamento, setModalLancamento] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const refetch = useCallback((mes: string, tipo: string, sq: string) => {
@@ -124,6 +127,17 @@ export function FluxoView({ initialData }: { initialData: CashflowResponse }) {
     return () => clearTimeout(t)
   }, [search, mesFilter, tipoFilter, refetch])
 
+  async function handleNovoLancamento(dto: { descricao: string; tipo: 'entrada' | 'saida'; valor: number }) {
+    try {
+      await createCashEntryAction(dto)
+      toast.success(`${dto.tipo === 'entrada' ? 'Entrada' : 'Saída'} registrada com sucesso`)
+      refetch(mesFilter, tipoFilter, search)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao registrar lançamento')
+      throw err
+    }
+  }
+
   const { saldoInicial, totais, lancamentos } = data
   const comSaldo = useMemo(() => withSaldo(lancamentos, saldoInicial), [lancamentos, saldoInicial])
 
@@ -146,6 +160,9 @@ export function FluxoView({ initialData }: { initialData: CashflowResponse }) {
           />
           <Button variant="outline" className="h-9 gap-1.5 border-[#E2E8F0] bg-white text-[13px] font-medium text-synk-navy hover:bg-[#F1F5F9]">
             <Download className="size-3.5" strokeWidth={1.5} />Exportar
+          </Button>
+          <Button onClick={() => setModalLancamento(true)} className="h-9 gap-1.5 bg-synk-indigo text-[13px] font-semibold hover:bg-synk-indigo-hover">
+            <Plus className="size-3.5" strokeWidth={2} />Novo lançamento
           </Button>
         </div>
       </div>
@@ -201,7 +218,7 @@ export function FluxoView({ initialData }: { initialData: CashflowResponse }) {
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <TrendingUp className="size-10 text-[#CBD5E1]" strokeWidth={1.5} />
             <p className="text-[15px] font-semibold text-synk-navy">Nenhum lançamento encontrado</p>
-            <p className="text-[13px] text-[#94A3B8]">Baixe contas a pagar ou a receber para movimentar o caixa</p>
+            <p className="text-[13px] text-[#94A3B8]">Baixe contas a pagar/receber ou registre um lançamento manual</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -249,6 +266,14 @@ export function FluxoView({ initialData }: { initialData: CashflowResponse }) {
           </div>
         )}
       </div>
+
+      {modalLancamento && (
+        <ModalLancamento
+          open
+          onClose={() => setModalLancamento(false)}
+          onConfirm={handleNovoLancamento}
+        />
+      )}
     </div>
   )
 }

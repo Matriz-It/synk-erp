@@ -13,7 +13,9 @@ export interface OrderDetail extends Pedido {
   descontoGlobal?: number
   items: Array<{
     id: string
-    productId: string
+    productId: string | null
+    serviceId: string | null
+    tipo: 'produto' | 'servico'
     nome: string
     sku: string
     preco: number
@@ -61,7 +63,8 @@ function buildOrderBody(data: OrderPayload) {
     dataPagamento: data.dataPagamento || undefined,
     pago: data.pago || undefined,
     items: data.items.map((i) => ({
-      productId: i.prodId,
+      productId: i.tipo === 'servico' ? undefined : i.prodId,
+      serviceId: i.tipo === 'servico' ? i.prodId : undefined,
       qtd: i.qtd,
       desconto: i.desconto ? (parseFloat(i.desconto.replace(/\./g, '').replace(',', '.')) || undefined) : undefined,
     })),

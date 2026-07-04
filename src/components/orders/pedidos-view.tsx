@@ -37,6 +37,7 @@ const DEFAULT_ACTIONS: OrderViewActions = {
 }
 import type { Cliente } from '@/components/clients/types'
 import type { Produto } from '@/components/products/types'
+import type { Servico } from '@/components/services/types'
 import {
   type Pedido, type PedidoItem, type StatusPedido,
   formatBRL, formatDate,
@@ -83,12 +84,14 @@ export function PedidosView({
   initialPedidos,
   clientes,
   produtos,
+  servicos = [],
   config: cfg = DEFAULT_CONFIG,
   actions: act = DEFAULT_ACTIONS,
 }: {
   initialPedidos: Pedido[]
   clientes: Cliente[]
   produtos: Produto[]
+  servicos?: Servico[]
   config?: OrderViewConfig
   actions?: OrderViewActions
 }) {
@@ -184,6 +187,7 @@ export function PedidosView({
         clientes={clientes}
         parceiroLabel={cfg.parceiroLabel}
         produtos={produtos}
+        servicos={servicos}
         config={cfg}
         initialOrder={editingOrder ?? undefined}
       />

@@ -164,6 +164,7 @@ export function SignupFlow() {
     const result = await registerAction({
       tenantName: data.companyName,
       tenantDocument: data.cnpj || undefined,
+      tenantSegment: data.segment || undefined,
       adminName: data.fullName,
       adminEmail: data.email,
       adminPassword: data.password,

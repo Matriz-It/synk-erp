@@ -3,6 +3,7 @@ import {
   Wallet,
   ShoppingCart,
   Package,
+  Wrench,
   Factory,
   BarChart3,
   Settings,
@@ -20,6 +21,8 @@ export interface NavItem {
   href: string
   icon: LucideIcon
   allowedRoles?: string[]
+  /** Só exibe o item se o segmento do tenant for igual (ex: 'servicos') */
+  requiresSegment?: string
   children?: NavSubItem[]
 }
 
@@ -59,6 +62,13 @@ export const NAVIGATION: NavItem[] = [
       { label: "Movimentações", href: "/dashboard/estoque/movimentacoes" },
       { label: "Inventário", href: "/dashboard/estoque/inventario" },
     ],
+  },
+  {
+    label: "Serviços",
+    href: "/dashboard/servicos",
+    icon: Wrench,
+    allowedRoles: ["proprietario", "admin", "vendedor"],
+    requiresSegment: "servicos",
   },
   {
     label: "Compras",

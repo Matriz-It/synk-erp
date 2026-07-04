@@ -12,6 +12,7 @@ export default async function EmpresaPage() {
       initialConfig={config}
       tenantName={me?.tenant.name ?? ''}
       tenantDocument={me?.tenant.document ?? null}
+      tenantSegmento={me?.tenant.segmento ?? null}
     />
   )
 }

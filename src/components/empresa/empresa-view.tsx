@@ -21,6 +21,13 @@ const AMBIENTE_OPTIONS = [
   { value: 'producao',    label: 'Produção (real)' },
 ]
 
+const SEGMENTO_OPTIONS = [
+  { value: 'comercio',  label: 'Comércio' },
+  { value: 'industria', label: 'Indústria' },
+  { value: 'servicos',  label: 'Serviços' },
+  { value: 'outros',    label: 'Outros' },
+]
+
 function maskCNPJ(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 14)
   return d
@@ -39,10 +46,12 @@ interface Props {
   initialConfig: TenantConfigData | null
   tenantName: string
   tenantDocument: string | null
+  tenantSegmento: string | null
 }
 
-export function EmpresaView({ initialConfig: ic, tenantName, tenantDocument }: Props) {
+export function EmpresaView({ initialConfig: ic, tenantName, tenantDocument, tenantSegmento }: Props) {
   // ── Dados da empresa ─────────────────────────────────────────────
+  const [segmento,       setSegmento]       = useState(tenantSegmento      ?? '')
   const [nomeFantasia,   setNomeFantasia]   = useState(ic?.nomeFantasia   ?? '')
   const [ie,             setIe]             = useState(ic?.ie             ?? '')
   const [im,             setIm]             = useState(ic?.im             ?? '')
@@ -99,6 +108,7 @@ export function EmpresaView({ initialConfig: ic, tenantName, tenantDocument }: P
     e.preventDefault()
     setSavingEmpresa(true)
     const err = await saveTenantConfigAction({
+      segmento: segmento || undefined,
       nomeFantasia: nomeFantasia || undefined,
       ie: ie || undefined, im: im || undefined, cnae: cnae || undefined,
       telefone: telefone || undefined, emailComercial: emailComercial || undefined,
@@ -182,6 +192,15 @@ export function EmpresaView({ initialConfig: ic, tenantName, tenantDocument }: P
             <F label="Nome Fantasia">
               <Input value={nomeFantasia} onChange={e => setNomeFantasia(e.target.value)} placeholder="Nome comercial" />
             </F>
+            <F label="Segmento">
+              <select value={segmento} onChange={e => setSegmento(e.target.value)}
+                className="h-10 w-full rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-synk-navy focus:outline-none focus:ring-2 focus:ring-synk-indigo/20">
+                <option value="">Selecione</option>
+                {SEGMENTO_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </F>
+          </Row2>
+          <Row2>
             <F label="CNAE">
               <Input value={cnae} onChange={e => setCnae(e.target.value)} placeholder="0000-0/00" maxLength={10} />
             </F>

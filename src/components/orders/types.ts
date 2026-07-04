@@ -35,13 +35,15 @@ export const FORMAS_PAGAMENTO = [
 ] as const
 
 export interface PedidoItem {
-  prodId: string
+  prodId: string   // id do produto OU do serviço (ver tipo)
   nome: string
   sku: string
   preco: number
   qtd: number
   maxQtd: number
   desconto: string
+  /** ausente = produto (compatível com fluxos que não vendem serviço) */
+  tipo?: 'produto' | 'servico'
 }
 
 export const STATUS_CFG: Record<StatusPedido, { label: string; bg: string; color: string; dot: string }> = {

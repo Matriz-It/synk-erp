@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { apiGet, ApiError } from '@/lib/api'
+import { apiGet, apiPost, ApiError } from '@/lib/api'
 
 export interface LancamentoCaixa {
   id: string
@@ -39,6 +39,18 @@ export async function getCashflowAction(params: {
   ).toString()
   try {
     return await apiGet<CashflowResponse>(`/cashflow${qs ? '?' + qs : ''}`)
+  } catch (err) {
+    return handleAuth(err)
+  }
+}
+
+export async function createCashEntryAction(dto: {
+  descricao: string
+  tipo: 'entrada' | 'saida'
+  valor: number
+}): Promise<LancamentoCaixa> {
+  try {
+    return await apiPost<LancamentoCaixa>('/cashflow', dto)
   } catch (err) {
     return handleAuth(err)
   }

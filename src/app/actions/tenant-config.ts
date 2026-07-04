@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 
 export interface TenantConfigData {
   id?: string
+  // Segmento (persistido no Tenant)
+  segmento?: string | null
   // Dados complementares
   nomeFantasia?: string | null
   ie?: string | null

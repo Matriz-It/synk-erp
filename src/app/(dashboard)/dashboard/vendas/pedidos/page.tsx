@@ -1,6 +1,7 @@
 import { listClientesAction } from "@/app/actions/clients"
 import { listOrdersAction } from "@/app/actions/orders"
 import { listProductsAction } from "@/app/actions/products"
+import { listServicesAction } from "@/app/actions/services"
 import { PedidosView } from "@/components/orders/pedidos-view"
 
 const PEDIDO_CONFIG = {
@@ -17,10 +18,11 @@ const PEDIDO_CONFIG = {
 }
 
 export default async function PedidosPage() {
-  const [initialPedidos, clientes, produtos] = await Promise.all([
+  const [initialPedidos, clientes, produtos, servicos] = await Promise.all([
     listOrdersAction().catch(() => []),
     listClientesAction().catch(() => []),
     listProductsAction().catch(() => []),
+    listServicesAction().catch(() => []),
   ])
 
   return (
@@ -28,6 +30,7 @@ export default async function PedidosPage() {
       initialPedidos={initialPedidos}
       clientes={clientes}
       produtos={produtos}
+      servicos={servicos}
       config={PEDIDO_CONFIG}
     />
   )

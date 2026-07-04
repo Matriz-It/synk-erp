@@ -49,6 +49,7 @@ export function Sidebar({ collapsed, onToggleCollapse, me }: SidebarProps) {
         <ul className="flex flex-col gap-0.5">
           {NAVIGATION
             .filter((item) => !item.allowedRoles || item.allowedRoles.includes(me?.user.role ?? ''))
+            .filter((item) => !item.requiresSegment || me?.tenant.segmento === item.requiresSegment)
             .map((item) => <SidebarItem key={item.href} item={item} collapsed={collapsed} />)}
         </ul>
       </nav>

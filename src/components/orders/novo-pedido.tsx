@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertTriangle, ArrowLeft, Check, Download, FileText, Loader2,
-  Package, Plus, Search, Trash2, X,
+  Package, Plus, Search, Trash2, Wrench, X,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import type { Cliente } from '@/components/clients/types'
 import type { Produto } from '@/components/products/types'
+import type { Servico } from '@/components/services/types'
 import {
   type PedidoItem, type StatusPedido,
   STATUS_CFG, formatBRL,
@@ -36,6 +37,7 @@ export function NovoPedido({
   proximoNumero,
   clientes,
   produtos,
+  servicos = [],
   config: cfg = DEFAULT_FORM_CONFIG,
   initialOrder,
   parceiroLabel,
@@ -45,6 +47,7 @@ export function NovoPedido({
   proximoNumero: number
   clientes: Cliente[]
   produtos: Produto[]
+  servicos?: Servico[]
   config?: OrderViewConfig
   initialOrder?: OrderDetail
   parceiroLabel?: string
@@ -61,13 +64,16 @@ export function NovoPedido({
   const [itens, setItens] = useState<PedidoItem[]>(() =>
     initialOrder
       ? initialOrder.items.map((i) => ({
-          prodId: i.productId,
+          prodId: i.productId ?? i.serviceId ?? '',
           nome: i.nome,
           sku: i.sku,
           preco: i.preco,
           qtd: i.qtd,
           desconto: i.desconto > 0 ? formatCurrencyDisplay(i.desconto) : '',
-          maxQtd: limitarEstoque ? (produtos.find((p) => p.id === i.productId)?.qtd ?? i.qtd) : 99999,
+          tipo: i.serviceId ? 'servico' as const : 'produto' as const,
+          maxQtd: i.serviceId || !limitarEstoque
+            ? 99999
+            : (produtos.find((p) => p.id === i.productId)?.qtd ?? i.qtd),
         }))
       : []
   )
@@ -101,12 +107,26 @@ export function NovoPedido({
     (p) => p.ativo && (!limitarEstoque || p.qtd > 0) && (!buscaProd || p.nome.toLowerCase().includes(buscaProd.toLowerCase()) || p.sku.toLowerCase().includes(buscaProd.toLowerCase()))
   )
 
+  const servsFiltrados = servicos.filter(
+    (s) => s.ativo && (!buscaProd || s.nome.toLowerCase().includes(buscaProd.toLowerCase()) || s.codigo.toLowerCase().includes(buscaProd.toLowerCase()))
+  )
+
+  const temServicos = servicos.length > 0
+
   function addItem(prod: Produto) {
     setItens((prev) => {
       if (prev.find((i) => i.prodId === prod.id)) return prev
       // Pedidos de compra usam preço de custo; pedidos de venda usam preço de venda
       const preco = !limitarEstoque ? (prod.precoCusto ?? prod.preco) : prod.preco
-      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco, qtd: 1, maxQtd: limitarEstoque ? prod.qtd : 99999, desconto: '' }]
+      return [...prev, { prodId: prod.id, nome: prod.nome, sku: prod.sku, preco, qtd: 1, maxQtd: limitarEstoque ? prod.qtd : 99999, desconto: '', tipo: 'produto' as const }]
+    })
+    setBuscaProd('')
+  }
+
+  function addServico(serv: Servico) {
+    setItens((prev) => {
+      if (prev.find((i) => i.prodId === serv.id)) return prev
+      return [...prev, { prodId: serv.id, nome: serv.nome, sku: serv.codigo, preco: serv.preco, qtd: 1, maxQtd: 99999, desconto: '', tipo: 'servico' as const }]
     })
     setBuscaProd('')
   }
@@ -305,18 +325,18 @@ export function NovoPedido({
             )}
           </section>
 
-          {/* Adicionar produtos */}
+          {/* Adicionar produtos / serviços */}
           <section className="rounded-lg border border-[#E2E8F0] bg-white p-5">
-            <h3 className="mb-3 text-[13px] font-semibold text-synk-navy">Adicionar produtos</h3>
+            <h3 className="mb-3 text-[13px] font-semibold text-synk-navy">{temServicos ? 'Adicionar produtos e serviços' : 'Adicionar produtos'}</h3>
             <div ref={prodRef} className="relative">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.5} />
-                <Input placeholder="Buscar produto por nome ou SKU..." value={buscaProd} onChange={(e) => setBuscaProd(e.target.value)} className="h-9 pl-9 text-sm" />
+                <Input placeholder={temServicos ? 'Buscar produto ou serviço por nome ou código...' : 'Buscar produto por nome ou SKU...'} value={buscaProd} onChange={(e) => setBuscaProd(e.target.value)} className="h-9 pl-9 text-sm" />
               </div>
               {buscaProd && (
                 <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-[200px] overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white shadow-lg">
-                  {prodsFiltrados.length === 0 ? (
-                    <p className="px-4 py-3 text-[13px] text-[#94A3B8]">Nenhum produto encontrado</p>
+                  {prodsFiltrados.length === 0 && servsFiltrados.length === 0 ? (
+                    <p className="px-4 py-3 text-[13px] text-[#94A3B8]">{temServicos ? 'Nenhum produto ou serviço encontrado' : 'Nenhum produto encontrado'}</p>
                   ) : prodsFiltrados.map((p) => {
                     const inCart = itens.some((i) => i.prodId === p.id)
                     return (
@@ -337,6 +357,23 @@ export function NovoPedido({
                       </button>
                     )
                   })}
+                  {servsFiltrados.map((s) => {
+                    const inCart = itens.some((i) => i.prodId === s.id)
+                    return (
+                      <button key={s.id} type="button" onClick={() => addServico(s)}
+                        className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${inCart ? 'bg-synk-indigo-light' : 'hover:bg-[#F8F9FC]'}`}>
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#d1fae5]">
+                          <Wrench className="size-4 text-[#14b87e]" strokeWidth={1.5} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-medium text-synk-navy">{s.nome}</p>
+                          <p className="font-mono text-[11px] text-[#94A3B8]">{s.codigo} · <span className="font-sans font-semibold text-[#14b87e]">Serviço</span></p>
+                        </div>
+                        <span className="font-mono text-[13px] font-semibold text-synk-navy">{formatBRL(s.preco)}</span>
+                        {inCart && <span className="text-[11px] font-semibold text-synk-indigo">adicionado ✓</span>}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -352,7 +389,7 @@ export function NovoPedido({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[#E2E8F0] bg-[#F8F9FC]">
-                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Produto</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{temServicos ? 'Item' : 'Produto'}</th>
                       <th className="px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Qtd</th>
                       <th className="hidden px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Unit.</th>
                       <th className="hidden px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8] sm:table-cell">Desc. R$</th>
@@ -366,7 +403,12 @@ export function NovoPedido({
                       return (
                         <tr key={item.prodId} className={`${i < itens.length - 1 ? 'border-b border-[#F1F5F9]' : ''}`}>
                           <td className="px-4 py-3">
-                            <p className="font-medium text-synk-navy">{item.nome}</p>
+                            <p className="font-medium text-synk-navy">
+                              {item.nome}
+                              {item.tipo === 'servico' && (
+                                <span className="ml-2 rounded bg-[#d1fae5] px-1.5 py-0.5 text-[10px] font-bold text-[#14b87e]">SERVIÇO</span>
+                              )}
+                            </p>
                             <p className="font-mono text-[11px] text-synk-indigo">{item.sku}</p>
                           </td>
                           <td className="px-4 py-3">
@@ -549,7 +591,7 @@ export function NovoPedido({
             )}
             {itens.length === 0 && (
               <div className="mt-2 flex items-center gap-2 rounded-md bg-[#FEF3C7] px-3 py-2.5 text-[12px] font-medium text-[#f59e0b]">
-                <AlertTriangle className="size-3.5 shrink-0" strokeWidth={1.5} />Adicione ao menos 1 produto
+                <AlertTriangle className="size-3.5 shrink-0" strokeWidth={1.5} />Adicione ao menos 1 {temServicos ? 'item' : 'produto'}
               </div>
             )}
           </div>
