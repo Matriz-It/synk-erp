@@ -92,19 +92,19 @@ export function PerfilView({ me }: Props) {
 
   // ── Segmento da empresa ──────────────────────────────────────
   const [segmento, setSegmento] = useState(tenant?.segmento ?? '')
+  const [savedSegmento, setSavedSegmento] = useState(tenant?.segmento ?? '')
   const [savingSegmento, setSavingSegmento] = useState(false)
 
-  async function handleChangeSegmento(value: string) {
-    const previous = segmento
-    setSegmento(value)
+  async function handleSaveSegmento() {
+    if (!segmento || segmento === savedSegmento) return
     setSavingSegmento(true)
-    const err = await saveTenantConfigAction({ segmento: value })
+    const err = await saveTenantConfigAction({ segmento })
     setSavingSegmento(false)
     if (err) {
-      setSegmento(previous)
       toast.error(err.error)
       return
     }
+    setSavedSegmento(segmento)
     toast.success('Segmento atualizado com sucesso')
     // Atualiza os componentes do servidor (sidebar depende do segmento)
     router.refresh()
@@ -268,17 +268,29 @@ export function PerfilView({ me }: Props) {
           {canEditSegmento ? (
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Segmento</p>
-              <select
-                value={segmento}
-                disabled={savingSegmento}
-                onChange={(e) => handleChangeSegmento(e.target.value)}
-                className="mt-1 h-9 w-full rounded-md border border-[#E2E8F0] bg-white px-2 text-[14px] font-medium text-synk-navy focus:outline-none focus:ring-2 focus:ring-synk-indigo/20 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <option value="" disabled>Selecione</option>
-                {SEGMENTO_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+              <div className="mt-1 flex items-center gap-2">
+                <select
+                  value={segmento}
+                  disabled={savingSegmento}
+                  onChange={(e) => setSegmento(e.target.value)}
+                  className="h-9 min-w-0 flex-1 rounded-md border border-[#E2E8F0] bg-white px-2 text-[14px] font-medium text-synk-navy focus:outline-none focus:ring-2 focus:ring-synk-indigo/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <option value="" disabled>Selecione</option>
+                  {SEGMENTO_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  onClick={handleSaveSegmento}
+                  disabled={savingSegmento || !segmento || segmento === savedSegmento}
+                  className="h-9 shrink-0 bg-synk-indigo hover:bg-synk-indigo-hover"
+                >
+                  {savingSegmento
+                    ? <><Loader2 className="size-4 animate-spin" strokeWidth={1.5} />Alterando...</>
+                    : 'Alterar'}
+                </Button>
+              </div>
             </div>
           ) : (
             <InfoRow label="Segmento" value={SEGMENTO_LABEL[segmento] ?? '—'} />
