@@ -15,6 +15,7 @@ export default async function ContasPagarPage() {
         novoLabel: 'Nova conta',
         categorias: CATEGORIAS_PAGAR,
         initialData,
+        permiteFixa: true,
         actions: {
           create: createBillAction,
           update: updateBillAction,

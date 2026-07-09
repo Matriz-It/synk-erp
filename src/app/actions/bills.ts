@@ -25,8 +25,8 @@ export async function updateBillAction(id: string, dto: Partial<Omit<Conta, 'id'
   catch (err) { return handleAuth(err) }
 }
 
-export async function payBillAction(id: string, pagoEm: string, valorPago?: number): Promise<Conta> {
-  try { return await apiPost<Conta>(`/bills/${id}/pay`, { pagoEm, valorPago }) }
+export async function payBillAction(id: string, pagoEm: string, valorPago?: number): Promise<Conta & { proxima?: Conta }> {
+  try { return await apiPost<Conta & { proxima?: Conta }>(`/bills/${id}/pay`, { pagoEm, valorPago }) }
   catch (err) { return handleAuth(err) }
 }
 

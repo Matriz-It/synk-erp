@@ -10,6 +10,7 @@ export interface Conta {
   status: ContaStatus
   categoria: string
   obs: string
+  fixa?: boolean       // conta fixa: ao baixar, gera a do mês seguinte
   pagoEm?: string      // YYYY-MM-DD
   criadoEm: string
 }

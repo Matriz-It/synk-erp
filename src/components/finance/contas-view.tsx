@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle, Plus, Search, Settings, Trash2, User } from 'lucide-react'
+import { CheckCircle, Plus, Repeat, Search, Settings, Trash2, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ModalContaForm } from './modal-conta-form'
@@ -16,7 +16,7 @@ import {
 export interface ContasViewActions {
   create: (dto: Omit<Conta, 'id' | 'numero' | 'status' | 'criadoEm'>) => Promise<Conta>
   update: (id: string, dto: Partial<Omit<Conta, 'id' | 'numero' | 'status' | 'criadoEm'>>) => Promise<Conta>
-  pay:    (id: string, pagoEm: string, valorPago?: number) => Promise<Conta>
+  pay:    (id: string, pagoEm: string, valorPago?: number) => Promise<Conta & { proxima?: Conta }>
   remove: (id: string) => Promise<void>
 }
 
@@ -29,6 +29,8 @@ export interface ContasViewConfig {
   categorias: readonly { value: string; label: string }[]
   initialData: Conta[]
   actions?: ContasViewActions
+  /** Habilita o checkbox "Conta fixa" (repete todo mês) no formulário */
+  permiteFixa?: boolean
 }
 
 const STATUS_FILTROS: { key: 'all' | ContaStatus; label: string }[] = [
@@ -113,8 +115,21 @@ export function ContasView({ config }: { config: ContasViewConfig }) {
     setContas(cs => cs.map(c => c.id === id ? { ...c, status: 'pago' as const, pagoEm } : c))
     try {
       const updated = act ? await act.pay(id, pagoEm, valorPago) : null
-      if (updated) setContas(cs => cs.map(c => c.id === id ? updated : c))
-      toast.success('Baixa registrada')
+      if (updated) {
+        const { proxima, ...paga } = updated
+        setContas(cs => {
+          const next = cs.map(c => c.id === id ? paga : c)
+          // Conta fixa: a API gera a ocorrência do mês seguinte na baixa
+          return proxima ? [proxima, ...next] : next
+        })
+        if (proxima) {
+          toast.success(`Baixa registrada — conta fixa de ${formatDate(proxima.vencimento)} gerada`)
+        } else {
+          toast.success('Baixa registrada')
+        }
+      } else {
+        toast.success('Baixa registrada')
+      }
     } catch (err) {
       if (backup) setContas(cs => cs.map(c => c.id === id ? backup : c))
       toast.error('Erro ao registrar baixa')
@@ -194,7 +209,14 @@ export function ContasView({ config }: { config: ContasViewConfig }) {
                   <tr key={c.id} className={`transition-colors hover:bg-[#F8F9FC] ${i < filtered.length - 1 ? 'border-b border-[#F1F5F9]' : ''}`}>
                     <td className="px-4 py-3 font-mono text-[13px] font-semibold text-synk-indigo">#{c.numero}</td>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-synk-navy">{c.parceiro}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-synk-navy">{c.parceiro}</p>
+                        {c.fixa && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-[5px] bg-synk-indigo-light px-1.5 py-0.5 text-[10px] font-bold text-synk-indigo" title="Conta fixa: repete todo mês">
+                            <Repeat className="size-2.5" strokeWidth={2} />Fixa
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-[13px] text-[#64748B]">{c.descricao}</td>
                     <td className="px-4 py-3 text-right font-mono text-[13px] font-bold text-synk-navy">{formatBRL(c.valor)}</td>
@@ -248,6 +270,7 @@ export function ContasView({ config }: { config: ContasViewConfig }) {
         conta={contaEdicao}
         parceiroLabel={config.parceiroLabel}
         categorias={config.categorias}
+        permiteFixa={config.permiteFixa}
       />
       <ModalBaixa
         open={modalBaixa}
