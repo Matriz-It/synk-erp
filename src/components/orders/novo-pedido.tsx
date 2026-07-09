@@ -14,6 +14,7 @@ import {
   type PedidoItem, type StatusPedido,
   STATUS_CFG, formatBRL,
 } from './types'
+import { imprimirPedidoPdf } from './pdf'
 import { maskBRL, parseBRL, formatCurrencyDisplay } from '@/components/ui/currency-input'
 import type { OrderViewConfig } from './pedidos-view'
 import type { OrderDetail } from '@/app/actions/orders'
@@ -193,23 +194,22 @@ export function NovoPedido({
     if (!clienteSel || itens.length === 0) return
     const win = window.open('', '_blank')
     if (!win) return
-    const statusCfg = STATUS_CFG[status]
-    win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${cfg.entityCapital} #${proximoNumero}</title>
-    <style>body{font-family:sans-serif;padding:32px;color:#0f172a}.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:4px;background:${statusCfg.bg};color:${statusCfg.color};font-size:12px;font-weight:600}.dot{width:6px;height:6px;border-radius:50%;background:${statusCfg.dot};display:inline-block}.row{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}.footer{margin-top:32px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px}</style>
-    </head><body>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><h2 style="margin:0">${cfg.entityCapital} #${proximoNumero}</h2><span class="badge"><span class="dot"></span>${statusCfg.label}</span></div>
-    <div style="background:#f8f9fc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin-bottom:16px"><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">CLIENTE</div><div style="font-weight:600">${clienteSel.razaoSocial}</div></div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px"><thead><tr style="background:#f8f9fc"><th style="text-align:left;padding:8px 12px;font-size:11px;color:#64748b">Produto</th><th style="text-align:right;padding:8px 12px;font-size:11px;color:#64748b">Qtd</th><th style="text-align:right;padding:8px 12px;font-size:11px;color:#64748b">Unit.</th><th style="text-align:right;padding:8px 12px;font-size:11px;color:#64748b">Total</th></tr></thead><tbody>
-    ${itens.map((i) => `<tr style="border-top:1px solid #f1f5f9"><td style="padding:8px 12px">${i.nome}</td><td style="padding:8px 12px;text-align:right">${i.qtd}</td><td style="padding:8px 12px;text-align:right;font-family:monospace">${formatBRL(i.preco)}</td><td style="padding:8px 12px;text-align:right;font-family:monospace">${formatBRL(i.preco * i.qtd - (parseFloat(i.desconto) || 0))}</td></tr>`).join('')}
-    </tbody></table>
-    <div class="row"><span>Subtotal</span><span style="font-family:monospace">${formatBRL(subtotalItens + descontosItem)}</span></div>
-    ${descontosItem + descGlobal > 0 ? `<div class="row"><span>Descontos</span><span style="color:#ef4444;font-family:monospace">-${formatBRL(descontosItem + descGlobal)}</span></div>` : ''}
-    <div class="row" style="border-top:1px solid #e2e8f0;margin-top:8px;padding-top:12px"><span style="font-weight:700;font-size:16px">Total</span><span style="font-weight:700;font-size:18px;color:#3d3ebf;font-family:monospace">${formatBRL(total)}</span></div>
-    ${obs ? `<div style="margin-top:16px;background:#fef3c7;padding:12px;border-radius:8px"><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">OBSERVAÇÕES</div><div>${obs}</div></div>` : ''}
-    <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} · Synk ERP</div>
-    </body></html>`)
-    win.document.close()
-    win.print()
+    imprimirPedidoPdf(win, {
+      titulo: `${cfg.entityCapital} #${initialOrder?.numero ?? proximoNumero}`,
+      status,
+      parceiroLabel: parceiroLbl,
+      parceiroNome: clienteSel.razaoSocial,
+      parceiroDoc: clienteSel.documento,
+      criadoEm: initialOrder?.criadoEm,
+      formaPagamento,
+      dataPagamento,
+      obs,
+      itens: itens.map((i) => ({
+        nome: i.nome, sku: i.sku, tipo: i.tipo ?? 'produto',
+        qtd: i.qtd, preco: i.preco, desconto: parseBRL(i.desconto),
+      })),
+      descontoGlobal: descGlobal,
+    })
   }
 
   return (

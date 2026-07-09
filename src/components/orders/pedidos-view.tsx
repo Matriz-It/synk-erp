@@ -344,6 +344,9 @@ export function PedidosView({
 
       <ModalDetalhePedido
         pedido={pedidoDetalhe}
+        getDetail={act.getDetail}
+        entityCapital={cfg.entityCapital}
+        parceiroLabel={cfg.parceiroLabel}
         onClose={() => setPedidoDetalhe(null)}
         onNovoPedido={() => setView('novo')}
         onConvertToOrder={act.convertToOrder ? async () => {

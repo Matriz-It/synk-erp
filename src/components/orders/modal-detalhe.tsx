@@ -1,62 +1,68 @@
 'use client'
 
-import { ArrowRight, Download, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowRight, Download, Loader2, Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import { ModalWrapper } from '@/components/products/modal-wrapper'
-import { type Pedido, FORMAS_PAGAMENTO, STATUS_CFG, formatBRL, formatDate } from './types'
+import { type Pedido, FORMAS_PAGAMENTO, formatBRL, formatDate } from './types'
+import { imprimirPedidoPdf } from './pdf'
 import { StatusBadge } from './status-badge'
+import type { OrderDetail } from '@/app/actions/orders'
 
 export function ModalDetalhePedido({
   pedido,
   onClose,
   onNovoPedido,
   onConvertToOrder,
+  getDetail,
+  entityCapital = 'Pedido',
+  parceiroLabel = 'Cliente',
 }: {
   pedido: Pedido | null
   onClose: () => void
   onNovoPedido: () => void
   onConvertToOrder?: () => Promise<void>
+  getDetail: (id: string) => Promise<OrderDetail>
+  entityCapital?: string
+  parceiroLabel?: string
 }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false)
+
   if (!pedido) return null
 
-  function gerarPDF() {
+  async function gerarPDF() {
+    if (!pedido || gerandoPdf) return
+    // Abre a janela ainda no gesto do clique para não ser bloqueada pelo navegador
     const win = window.open('', '_blank')
     if (!win) return
-    const cfg = STATUS_CFG[pedido!.status]
-    win.document.write(`
-      <!DOCTYPE html><html lang="pt-BR"><head>
-      <meta charset="UTF-8"><title>Pedido #${pedido!.numero}</title>
-      <style>
-        body { font-family: 'Inter', sans-serif; padding: 32px; color: #0f172a; }
-        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
-        .badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:4px;
-                 background:${cfg.bg}; color:${cfg.color}; font-size:12px; font-weight:600; }
-        .dot { width:6px; height:6px; border-radius:50%; background:${cfg.dot}; display:inline-block; }
-        .box { background:#f8f9fc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; margin-bottom:16px; }
-        .row { display:flex; justify-content:space-between; padding:6px 0; font-size:14px; }
-        .total { font-size:20px; font-weight:700; color:#3d3ebf; }
-        .footer { margin-top:32px; font-size:11px; color:#94a3b8; border-top:1px solid #e2e8f0; padding-top:12px; }
-      </style></head><body>
-      <div class="header">
-        <h2 style="margin:0;font-size:20px">Pedido #${pedido!.numero}</h2>
-        <span class="badge"><span class="dot"></span>${cfg.label}</span>
-      </div>
-      <div class="box">
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">CLIENTE</div>
-        <div style="font-weight:600">${pedido!.cliente}</div>
-      </div>
-      ${pedido!.obs ? `<div class="box" style="background:#fef3c7;border-color:#f59e0b40"><div style="font-size:11px;color:#94a3b8;margin-bottom:4px">OBSERVAÇÕES</div><div>${pedido!.obs}</div></div>` : ''}
-      <div class="row"><span>Subtotal (${pedido!.itens} iten${pedido!.itens !== 1 ? 's' : ''})</span><span>${formatBRL(pedido!.subtotal)}</span></div>
-      ${pedido!.desconto > 0 ? `<div class="row"><span>Desconto</span><span style="color:#ef4444">-${formatBRL(pedido!.desconto)}</span></div>` : ''}
-      <div class="row" style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px"><span style="font-weight:700">Total</span><span class="total">${formatBRL(pedido!.total)}</span></div>
-      <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} · Synk ERP</div>
-      </body></html>
-    `)
-    win.document.close()
-    win.print()
+    win.document.write('<p style="font-family:sans-serif;color:#64748b;padding:32px">Gerando PDF…</p>')
+    setGerandoPdf(true)
+    try {
+      const detail = await getDetail(pedido.id)
+      imprimirPedidoPdf(win, {
+        titulo: `${entityCapital} #${pedido.numero}`,
+        status: pedido.status,
+        parceiroLabel,
+        parceiroNome: pedido.cliente,
+        criadoEm: pedido.criadoEm,
+        formaPagamento: pedido.formaPagamento,
+        dataPagamento: pedido.dataPagamento,
+        obs: pedido.obs,
+        itens: detail.items.map((i) => ({
+          nome: i.nome, sku: i.sku, tipo: i.tipo, qtd: i.qtd, preco: i.preco, desconto: i.desconto,
+        })),
+        descontoGlobal: detail.descontoGlobal ?? 0,
+      })
+    } catch {
+      win.close()
+      toast.error('Erro ao carregar os itens para o PDF')
+    } finally {
+      setGerandoPdf(false)
+    }
   }
 
   return (
-    <ModalWrapper open onClose={onClose} title={`Pedido #${pedido.numero}`} width="max-w-md">
+    <ModalWrapper open onClose={onClose} title={`${entityCapital} #${pedido.numero}`} width="max-w-md">
       <div className="space-y-4 p-4 sm:p-6">
         {/* Status + data */}
         <div className="flex items-center gap-2">
@@ -66,7 +72,7 @@ export function ModalDetalhePedido({
 
         {/* Cliente */}
         <div className="rounded-lg border border-[#E2E8F0] bg-[#F8F9FC] p-3">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-[#94A3B8]">Cliente</p>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-[#94A3B8]">{parceiroLabel}</p>
           <p className="mt-0.5 text-[14px] font-semibold text-synk-navy">{pedido.cliente}</p>
         </div>
 
@@ -127,9 +133,10 @@ export function ModalDetalhePedido({
           <button
             type="button"
             onClick={gerarPDF}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white py-2.5 text-[13px] font-medium text-[#64748B] transition-colors hover:bg-[#F8F9FC]"
+            disabled={gerandoPdf}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white py-2.5 text-[13px] font-medium text-[#64748B] transition-colors hover:bg-[#F8F9FC] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Download className="size-3.5" strokeWidth={1.5} />Gerar PDF
+            {gerandoPdf ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" strokeWidth={1.5} />}Gerar PDF
           </button>
 
           {onConvertToOrder && pedido.status === 'aprovado' ? (
