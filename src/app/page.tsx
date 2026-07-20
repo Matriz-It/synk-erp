@@ -237,7 +237,7 @@ export default function Home() {
           <div className="metric-item">
             <div className="metric-value">99.5%</div>
             <div className="metric-label">Uptime garantido</div>
-            <div className="metric-sub">SLA incluído no plano Pro+</div>
+            <div className="metric-sub">SLA incluído no plano Business+</div>
           </div>
           <div className="metric-item">
             <div className="metric-value">NF-e</div>
@@ -252,21 +252,21 @@ export default function Home() {
           <span className="section-label">PLANOS</span>
           <h2 className="section-headline">Simples e transparente</h2>
           <p className="section-sub">
-            Comece grátis e escale conforme seu negócio crescer. Sem taxas
-            escondidas.
+            Escolha o plano ideal para o seu negócio e escale conforme ele
+            cresce. Sem taxas escondidas.
           </p>
         </div>
         <div className="plans-grid">
           <div className="plan-card">
             <div style={{ height: '32px' }}></div>
             <div className="plan-name" style={{ color: 'var(--gray-700)' }}>
-              Free
+              Pro
             </div>
             <div className="plan-price-row">
-              <span className="plan-price">R$ 0</span>
+              <span className="plan-price">R$ 80</span>
             </div>
             <div className="plan-period">/mês</div>
-            <div className="plan-desc">Para conhecer o Synk</div>
+            <div className="plan-desc">Para pequenos negócios</div>
             <div className="plan-divider"></div>
             <div className="plan-features">
               <div className="plan-feature">
@@ -286,16 +286,16 @@ export default function Home() {
               </div>
             </div>
             <a href="#" className="btn-plan btn-plan-outline">
-              Criar conta grátis
+              Começar agora
             </a>
           </div>
 
           <div className="plan-card highlighted">
             <div className="plan-tag">✦ MAIS POPULAR</div>
-            <div className="plan-name">Pro</div>
+            <div className="plan-name">Business</div>
             <div className="plan-price-row">
               <span className="plan-price" style={{ color: 'var(--white)' }}>
-                R$ 149
+                R$ 189
               </span>
             </div>
             <div className="plan-period">/mês</div>
@@ -329,17 +329,19 @@ export default function Home() {
           <div className="plan-card">
             <div style={{ height: '32px' }}></div>
             <div className="plan-name" style={{ color: 'var(--gray-700)' }}>
-              Business
+              Personalizado
             </div>
+            <div className="plan-from">A partir de</div>
             <div className="plan-price-row">
               <span className="plan-price">R$ 349</span>
+              <span className="plan-plus">+</span>
             </div>
             <div className="plan-period">/mês</div>
             <div className="plan-desc">Para operações maiores</div>
             <div className="plan-divider"></div>
             <div className="plan-features">
               <div className="plan-feature">
-                <span className="check-icon">✓</span>Tudo do Pro
+                <span className="check-icon">✓</span>Tudo do Business
               </div>
               <div className="plan-feature">
                 <span className="check-icon">✓</span>Usuários ilimitados
