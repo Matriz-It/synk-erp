@@ -33,7 +33,7 @@ const ROLE_LABEL: Record<string, string> = {
   vendedor: 'Vendedor',
   user: 'Usuário',
 }
-const PLAN_LABEL: Record<string, string> = { free: 'Plano Free', pro: 'Plano Pro', enterprise: 'Enterprise' }
+const PLAN_LABEL: Record<string, string> = { pro: 'Plano Pro', business: 'Plano Business', personalizado: 'Personalizado' }
 
 export function Sidebar({ collapsed, onToggleCollapse, me }: SidebarProps) {
   return (
@@ -48,6 +48,7 @@ export function Sidebar({ collapsed, onToggleCollapse, me }: SidebarProps) {
       <nav className="flex-1 px-2 py-3">
         <ul className="flex flex-col gap-0.5">
           {NAVIGATION
+            .filter((item) => !me?.tenant.billingBlocked || item.billingExempt)
             .filter((item) => !item.allowedRoles || item.allowedRoles.includes(me?.user.role ?? ''))
             .filter((item) => !item.requiresSegment || me?.tenant.segmento === item.requiresSegment)
             .map((item) => <SidebarItem key={item.href} item={item} collapsed={collapsed} />)}

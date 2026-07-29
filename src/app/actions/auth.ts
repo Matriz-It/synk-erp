@@ -6,7 +6,11 @@ import { createSession, deleteSession } from '@/lib/session'
 
 export interface MeData {
   user: { id: string; name: string; email: string; role: string; document: string | null }
-  tenant: { name: string; document: string | null; plan: string; segmento: string | null }
+  tenant: {
+    name: string; document: string | null; plan: string; segmento: string | null
+    trialEndsAt: string | null
+    billingBlocked: boolean
+  }
 }
 
 export async function getMeAction(): Promise<MeData | null> {

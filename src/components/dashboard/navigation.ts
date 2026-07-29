@@ -7,6 +7,7 @@ import {
   Factory,
   BarChart3,
   Settings,
+  Receipt,
   type LucideIcon,
 } from "lucide-react"
 
@@ -23,6 +24,8 @@ export interface NavItem {
   allowedRoles?: string[]
   /** Só exibe o item se o segmento do tenant for igual (ex: 'servicos') */
   requiresSegment?: string
+  /** Continua visível mesmo com o acesso bloqueado por inadimplência (ver Sidebar) */
+  billingExempt?: boolean
   children?: NavSubItem[]
 }
 
@@ -82,6 +85,13 @@ export const NAVIGATION: NavItem[] = [
   },
   { label: "Relatórios", href: "/dashboard/relatorios", icon: BarChart3 },
   {
+    label: "Faturas",
+    href: "/dashboard/faturas",
+    icon: Receipt,
+    allowedRoles: ["proprietario", "admin", "financeiro"],
+    billingExempt: true,
+  },
+  {
     label: "Configurações",
     href: "/dashboard/configuracoes",
     icon: Settings,
@@ -89,6 +99,7 @@ export const NAVIGATION: NavItem[] = [
     children: [
       { label: "Empresa", href: "/dashboard/configuracoes/empresa" },
       { label: "Equipe", href: "/dashboard/configuracoes/equipe" },
+      { label: "Plano", href: "/dashboard/configuracoes/plano" },
     ],
   },
 ]
