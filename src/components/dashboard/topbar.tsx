@@ -44,6 +44,8 @@ function NotificationsButton({ initialNotifications }: { initialNotifications: A
     return () => document.removeEventListener('mousedown', onOutsideClick)
   }, [])
 
+  const temDescartaveis = notifs.some((n) => !n.pinned)
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -64,10 +66,10 @@ function NotificationsButton({ initialNotifications }: { initialNotifications: A
         <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[300px] max-w-[calc(100vw-1rem)] animate-in fade-in slide-in-from-top-1 overflow-hidden rounded-[10px] border border-[#E2E8F0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] duration-150">
           <div className="flex items-center justify-between border-b border-[#F1F5F9] px-4 py-3">
             <span className="text-[14px] font-semibold text-synk-navy">Notificações</span>
-            {notifs.length > 0 && (
+            {temDescartaveis && (
               <button
                 type="button"
-                onClick={() => setNotifs([])}
+                onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned))}
                 className="text-[11px] font-semibold text-synk-indigo transition-colors hover:text-synk-indigo-hover"
               >
                 Marcar todas lidas

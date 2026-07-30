@@ -3,12 +3,16 @@
 import { redirect } from 'next/navigation'
 import { apiGet, ApiError } from '@/lib/api'
 import type { Conta } from '@/components/finance/types'
+import { diasEmAtraso } from '@/components/faturas/types'
+import { getFaturaStatusAction } from '@/app/actions/faturas'
 
 export interface AppNotification {
   id: string
   title: string
   sub: string
   tone: 'danger' | 'warning' | 'info'
+  /** Não some ao "marcar todas como lidas" — some sozinha quando a causa for resolvida. */
+  pinned?: boolean
 }
 
 function formatBRL(v: number) {
@@ -17,12 +21,29 @@ function formatBRL(v: number) {
 
 export async function getNotificationsAction(): Promise<AppNotification[]> {
   try {
-    const [bills, receivables] = await Promise.all([
+    const [bills, receivables, faturaStatus] = await Promise.all([
       apiGet<Conta[]>('/bills').catch(() => [] as Conta[]),
       apiGet<Conta[]>('/receivables').catch(() => [] as Conta[]),
+      getFaturaStatusAction(),
     ])
 
     const list: AppNotification[] = []
+
+    const faturaAtual = faturaStatus?.faturaAtual
+    if (faturaAtual && faturaAtual.status === 'pendente') {
+      const dias = diasEmAtraso(faturaAtual.vencimento)
+      if (dias > 0) {
+        list.push({
+          id: 'fatura-assinatura-atraso',
+          title: `Fatura #${faturaAtual.numero} da assinatura em atraso`,
+          sub: faturaStatus?.blocked
+            ? `${formatBRL(faturaAtual.valor)} vencida há ${dias} dia${dias !== 1 ? 's' : ''} — acesso bloqueado, regularize para continuar`
+            : `${formatBRL(faturaAtual.valor)} vencida há ${dias} dia${dias !== 1 ? 's' : ''}`,
+          tone: 'danger',
+          pinned: true,
+        })
+      }
+    }
 
     const billsVencendo = bills.filter(b => b.status === 'vencendo')
     if (billsVencendo.length > 0) {

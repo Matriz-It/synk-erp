@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AlertTriangle, Clock, CreditCard, Receipt } from 'lucide-react'
 import type { MeData } from '@/app/actions/auth'
-import { type Fatura, formatBRL, formatDate } from './types'
+import { type Fatura, diasEmAtraso, formatBRL, formatDate } from './types'
 import { FaturaStatusBadge } from './fatura-status-badge'
 import { FaturaPagamentoSheet } from './fatura-pagamento-sheet'
 
@@ -23,6 +23,8 @@ export function FaturasView({
   const blocked = tenant?.billingBlocked ?? false
   const trialEndsAt = tenant?.trialEndsAt ?? null
   const pendente = faturas.find((f) => f.status === 'pendente')
+  const diasAtraso = pendente ? diasEmAtraso(pendente.vencimento) : 0
+  const vencida = !blocked && !!pendente && diasAtraso > 0
   const emTrial = !blocked && !pendente && trialEndsAt && new Date(trialEndsAt) > new Date()
 
   function onPago(atualizada: Fatura) {
@@ -51,7 +53,20 @@ export function FaturasView({
         </div>
       )}
 
-      {!blocked && pendente && (
+      {vencida && pendente && (
+        <div className="flex items-start gap-3 rounded-lg border border-[#fde68a] bg-[#FFFBEB] p-4">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-[#d97706]" strokeWidth={1.5} />
+          <div>
+            <p className="text-[14px] font-semibold text-[#92400E]">Fatura em atraso</p>
+            <p className="mt-0.5 text-[13px] text-[#92400E]">
+              A fatura #{pendente.numero} de {formatBRL(pendente.valor)} está vencida há {diasAtraso} dia{diasAtraso !== 1 ? 's' : ''}.
+              Pague abaixo para evitar o bloqueio do sistema.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!blocked && !vencida && pendente && (
         <div className="flex items-start gap-3 rounded-lg border border-[#E2E8F0] bg-[#F8F9FC] p-4">
           <Receipt className="mt-0.5 size-5 shrink-0 text-[#64748B]" strokeWidth={1.5} />
           <div className="flex-1">

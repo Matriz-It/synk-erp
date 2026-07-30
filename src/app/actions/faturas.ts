@@ -14,6 +14,18 @@ export async function listFaturasAction(): Promise<Fatura[]> {
   catch (err) { return handleAuth(err) }
 }
 
+export interface FaturaStatusResumo {
+  blocked: boolean
+  trialEndsAt: string | null
+  trialDaysLeft: number | null
+  faturaAtual: Fatura | null
+}
+
+export async function getFaturaStatusAction(): Promise<FaturaStatusResumo | null> {
+  try { return await apiGet<FaturaStatusResumo>('/faturas/status') }
+  catch { return null }
+}
+
 export interface PagarFaturaInput {
   paymentType: 'creditCard' | 'debitCard' | 'ticket' | 'bank_transfer'
   paymentMethodId: string

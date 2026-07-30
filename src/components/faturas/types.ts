@@ -29,6 +29,13 @@ export function computeDisplayStatus(fatura: Fatura): FaturaDisplayStatus {
   return fatura.vencimento <= today ? 'vencida' : 'pendente'
 }
 
+/** Quantos dias já se passaram desde o vencimento (0 se ainda não venceu). */
+export function diasEmAtraso(vencimento: string): number {
+  const venc = new Date(`${vencimento}T00:00:00Z`).getTime()
+  const hoje = new Date(`${new Date().toISOString().split('T')[0]}T00:00:00Z`).getTime()
+  return Math.max(0, Math.round((hoje - venc) / 86400000))
+}
+
 export function formatBRL(v: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 }

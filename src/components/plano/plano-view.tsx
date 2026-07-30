@@ -10,6 +10,7 @@ interface PlanoDef {
   id: PlanoSelecionavel | 'personalizado'
   nome: string
   preco: string
+  precoValor: number
   periodo?: string
   desc: string
   features: string[]
@@ -21,6 +22,7 @@ const PLANOS: PlanoDef[] = [
     id: 'pro',
     nome: 'Pro',
     preco: 'R$ 80',
+    precoValor: 80,
     periodo: '/mês',
     desc: 'Para pequenos negócios',
     features: ['Até 50 NF-e por mês', '1 usuário', 'Financeiro básico', 'Estoque básico', 'Suporte por e-mail'],
@@ -29,6 +31,7 @@ const PLANOS: PlanoDef[] = [
     id: 'business',
     nome: 'Business',
     preco: 'R$ 189',
+    precoValor: 189,
     periodo: '/mês',
     desc: 'Para PMEs em crescimento',
     features: ['NF-e ilimitadas', 'Até 5 usuários', 'Financeiro completo + DRE', 'Estoque multi-depósito', 'Relatórios avançados', 'Suporte via chat (8×5)'],
@@ -38,6 +41,7 @@ const PLANOS: PlanoDef[] = [
     id: 'personalizado',
     nome: 'Personalizado',
     preco: 'R$ 349+',
+    precoValor: 349,
     periodo: '/mês',
     desc: 'Para operações maiores',
     features: ['Tudo do Business', 'Usuários ilimitados', 'Multi-tenancy avançado', 'API aberta', 'Integrações customizadas', 'Suporte prioritário 24×7'],
@@ -48,6 +52,10 @@ export function PlanoView({ planoAtual }: { planoAtual: string }) {
   const router = useRouter()
   const [atual, setAtual] = useState(planoAtual)
   const [salvando, setSalvando] = useState<string | null>(null)
+
+  // Não mostra planos mais baratos que o atual — evita downgrade acidental pela UI.
+  const precoAtual = PLANOS.find((p) => p.id === atual)?.precoValor ?? 0
+  const planosVisiveis = PLANOS.filter((p) => p.precoValor >= precoAtual)
 
   async function escolher(id: PlanoSelecionavel) {
     if (id === atual || salvando) return
@@ -72,7 +80,7 @@ export function PlanoView({ planoAtual }: { planoAtual: string }) {
       </div>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-        {PLANOS.map((p) => {
+        {planosVisiveis.map((p) => {
           const isAtual = p.id === atual
           const isPersonalizado = p.id === 'personalizado'
 
