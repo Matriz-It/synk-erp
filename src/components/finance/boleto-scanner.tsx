@@ -21,12 +21,27 @@ export function BoletoScanner({ onDetected }: BoletoScannerProps) {
     let cancelled = false
     const hints = new Map<DecodeHintType, unknown>()
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.ITF, BarcodeFormat.CODE_128])
-    hints.set(DecodeHintType.TRY_HARDER, true)
+    // TRY_HARDER faz o OneDReader tentar rotacionar o frame via <canvas> quando a
+    // primeira leitura falha, e essa rotação está quebrada no @zxing/library atual
+    // (lança "Could not create a Canvas element" em todo frame, travando a leitura).
+    // Sem o hint, o reader já tenta a linha normal e invertida (código de cabeça pra
+    // baixo) sem precisar rotacionar — suficiente para escaneamento contínuo por vídeo.
     const reader = new BrowserMultiFormatReader(hints)
 
     reader
       .decodeFromConstraints(
-        { video: { facingMode: 'environment' } },
+        {
+          video: {
+            facingMode: 'environment',
+            // Resolução baixa (padrão de muitos webcams/celulares) não tem pixels
+            // suficientes por barra para ler um código 1D — força alta resolução e
+            // foco contínuo (essencial pra ler de perto). "ideal" é best-effort, não
+            // quebra em dispositivos que não suportam.
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet],
+          },
+        },
         videoRef.current ?? undefined,
         (result, _err, controls) => {
           if (cancelled) return
