@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle, Plus, Repeat, Search, Settings, Trash2, User } from 'lucide-react'
+import { CheckCircle, Plus, Repeat, ScanLine, Search, Settings, Trash2, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ModalContaForm } from './modal-conta-form'
 import { ModalBaixa } from './modal-baixa'
+import { ModalBoletoScan } from './modal-boleto-scan'
 import { ContaStatusBadge } from './conta-status-badge'
 import {
   type Conta, type ContaStatus,
@@ -31,6 +32,8 @@ export interface ContasViewConfig {
   actions?: ContasViewActions
   /** Habilita o checkbox "Conta fixa" (repete todo mês) no formulário */
   permiteFixa?: boolean
+  /** Habilita o botão "Escanear boleto" (leitura do código de barras pela câmera) */
+  permiteBoleto?: boolean
 }
 
 const STATUS_FILTROS: { key: 'all' | ContaStatus; label: string }[] = [
@@ -51,6 +54,7 @@ export function ContasView({ config }: { config: ContasViewConfig }) {
   const [contaEdicao, setContaEdicao] = useState<Conta | null>(null)
   const [modalBaixa, setModalBaixa] = useState(false)
   const [contaBaixa, setContaBaixa] = useState<Conta | null>(null)
+  const [modalBoleto, setModalBoleto] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -158,9 +162,16 @@ export function ContasView({ config }: { config: ContasViewConfig }) {
             {contas.filter(c => c.status !== 'pago').length} pendente{contas.filter(c => c.status !== 'pago').length !== 1 ? 's' : ''} · {contas.filter(c => c.status === 'vencido').length} vencido{contas.filter(c => c.status === 'vencido').length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button onClick={() => { setContaEdicao(null); setModalForm(true) }} className="bg-synk-indigo hover:bg-synk-indigo-hover">
-          <Plus className="size-4" strokeWidth={2} />{config.novoLabel}
-        </Button>
+        <div className="flex gap-2">
+          {config.permiteBoleto && (
+            <Button variant="outline" onClick={() => setModalBoleto(true)}>
+              <ScanLine className="size-4" strokeWidth={1.5} />Escanear boleto
+            </Button>
+          )}
+          <Button onClick={() => { setContaEdicao(null); setModalForm(true) }} className="bg-synk-indigo hover:bg-synk-indigo-hover">
+            <Plus className="size-4" strokeWidth={2} />{config.novoLabel}
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -279,6 +290,15 @@ export function ContasView({ config }: { config: ContasViewConfig }) {
         onConfirm={handleBaixa}
         titulo={config.baixaModalTitle}
       />
+      {config.permiteBoleto && (
+        <ModalBoletoScan
+          open={modalBoleto}
+          onClose={() => setModalBoleto(false)}
+          onSave={handleSave}
+          parceiroLabel={config.parceiroLabel}
+          categorias={config.categorias}
+        />
+      )}
     </div>
   )
 }

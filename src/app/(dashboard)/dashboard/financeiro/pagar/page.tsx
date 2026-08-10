@@ -16,6 +16,7 @@ export default async function ContasPagarPage() {
         categorias: CATEGORIAS_PAGAR,
         initialData,
         permiteFixa: true,
+        permiteBoleto: true,
         actions: {
           create: createBillAction,
           update: updateBillAction,

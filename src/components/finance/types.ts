@@ -12,6 +12,9 @@ export interface Conta {
   obs: string
   fixa?: boolean       // conta fixa: ao baixar, gera a do mês seguinte
   pagoEm?: string      // YYYY-MM-DD
+  codigoBarras?: string
+  banco?: string
+  origem?: 'manual' | 'boleto'
   criadoEm: string
 }
 

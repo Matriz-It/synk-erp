@@ -34,3 +34,17 @@ export async function deleteBillAction(id: string): Promise<void> {
   try { await apiDelete(`/bills/${id}`) }
   catch (err) { handleAuth(err) }
 }
+
+export interface ParsedBoleto {
+  codigoBarras: string
+  banco: string
+  bancoNome: string
+  valor: number
+  vencimento: string | null
+  duplicado: boolean
+}
+
+export async function parseBoletoAction(codigoBarras: string): Promise<ParsedBoleto> {
+  try { return await apiPost<ParsedBoleto>('/bills/boleto/parse', { codigoBarras }) }
+  catch (err) { return handleAuth(err) }
+}
