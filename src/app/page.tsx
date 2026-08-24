@@ -1,33 +1,10 @@
 import Link from "next/link"
+import { SiteNavbar } from "@/components/landing/site-navbar"
 
 export default function Home() {
   return (
     <>
-      <nav className="navbar">
-        <span className="logo">Synk</span>
-        <ul className="nav-links">
-          <li>
-            <a href="#features">Produto</a>
-          </li>
-          <li>
-            <a href="#features">Funcionalidades</a>
-          </li>
-          <li>
-            <a href="#pricing">Preços</a>
-          </li>
-          <li>
-            <a href="#">Blog</a>
-          </li>
-        </ul>
-        <div className="nav-actions">
-          <Link href="/login" className="btn-ghost">
-            Entrar
-          </Link>
-          <Link href="/signup" className="btn-primary">
-            Começar grátis
-          </Link>
-        </div>
-      </nav>
+      <SiteNavbar />
 
       <section className="hero">
         <div className="hero-left">
