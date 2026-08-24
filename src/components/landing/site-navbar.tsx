@@ -35,15 +35,20 @@ export function SiteNavbar() {
         </Link>
       </div>
 
-      <button
-        type="button"
-        className="nav-toggle"
-        aria-label={open ? "Fechar menu" : "Abrir menu"}
-        aria-expanded={open}
-        onClick={() => setOpen((prev) => !prev)}
-      >
-        {open ? <X size={22} /> : <Menu size={22} />}
-      </button>
+      <div className="nav-mobile-bar">
+        <Link href="/login" className="btn-ghost">
+          Entrar
+        </Link>
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label={open ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
 
       {open && (
         <div className="nav-mobile-menu">
@@ -60,9 +65,6 @@ export function SiteNavbar() {
             Blog
           </a>
           <div className="nav-mobile-actions">
-            <Link href="/login" className="btn-ghost" onClick={() => setOpen(false)}>
-              Entrar
-            </Link>
             <Link href="/signup" className="btn-primary" onClick={() => setOpen(false)}>
               Começar grátis
             </Link>
